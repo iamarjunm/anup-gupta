@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import 'animate.css';
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease forwards;
+}
+
+.animate-fade-in.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animate-fade-in.delay-1000 {
+  animation-delay: 1s;
+}
+
+
+/* globals.css */
+body {
+  color: black; /* Black text color for the body */
+  background-color: white; /* White background color */
+  font-family: 'Arial', sans-serif; /* You can adjust the font family as needed */
+  line-height: 1.6;
+}
+
