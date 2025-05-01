@@ -2,7 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import LuxuryFooter from "@/components/Footer"
-import "../Styles/globals.css";
+import "../styles/globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { UserProvider } from "@/context/UserContext";
 
