@@ -40,24 +40,25 @@ const PhoneInput = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-3">
-          <label className="block text-sm font-medium text-gray-400 mb-1">
-            Country Code
+        <div className="col-span-12 md:col-span-3">
+          <label className="block text-xs font-medium tracking-wide text-charcoal-600 mb-1">
+            COUNTRY CODE
           </label>
-          <div className="flex items-center h-10 px-3 rounded bg-gray-700 text-gray-300">
+          <div className="flex items-center h-12 px-3 border border-ivory-300 bg-white text-charcoal-900 font-light">
             +91 (India)
           </div>
         </div>
-        <div className="col-span-9">
-          <label className="block text-sm font-medium text-gray-400 mb-1">
-            Phone Number
+        <div className="col-span-12 md:col-span-9">
+          <label className="block text-xs font-medium tracking-wide text-charcoal-600 mb-1">
+            PHONE NUMBER
           </label>
           <input
             type="tel"
             value={phoneData.phone}
             onChange={handleChange}
-            className="w-full h-10 px-3 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            placeholder="9876543210"
+            className="w-full h-12 px-3 border border-ivory-300 bg-white text-charcoal-900 
+                      focus:outline-none focus:border-charcoal-500 font-light"
+            placeholder="Enter 10-digit number"
             required
             pattern="[0-9]{10}"
             maxLength="10"
@@ -65,20 +66,22 @@ const PhoneInput = ({
           />
         </div>
       </div>
-      <div className="flex space-x-2 pt-2">
+      <div className="flex space-x-3 pt-2">
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="px-6 py-2 bg-charcoal-900 text-black text-xs font-medium tracking-wide 
+                    hover:bg-charcoal-800 transition-colors disabled:opacity-70"
         >
-          {isLoading ? 'Saving...' : 'Save Changes'}
+          {isLoading ? 'SAVING...' : 'SAVE CHANGES'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+          className="px-6 py-2 border border-charcoal-900 text-charcoal-900 text-xs 
+                    font-medium tracking-wide hover:bg-ivory-200 transition-colors"
         >
-          Cancel
+          CANCEL
         </button>
       </div>
     </form>

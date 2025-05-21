@@ -22,42 +22,63 @@ const AccountPage = () => {
   };
 
   if (loading) {
-    return <Loader />;
+    return (
+      <div className="min-h-screen bg-ivory-50 flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
 
   if (!user) {
-    return <p className="text-center text-white py-12">You must be logged in to view your account.</p>;
+    return (
+      <div className="min-h-screen bg-ivory-50 flex items-center justify-center">
+        <p className="text-charcoal-900 text-lg">Please sign in to access your account</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white py-10">
-      <div className="container mx-auto px-4 flex">
-        <Sidebar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-          handleLogout={handleLogout}
-        />
-        <div className="w-3/4">
-          {activeSection === "profile" && (
-            <ProfileSection
-              user={user}
-              updateName={updateName}
-              updatePhone={updatePhone}
+    <div className="min-h-screen bg-ivory-50 text-charcoal-900">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <h1 className="text-3xl font-serif font-light tracking-tight mb-8">
+          Your Account
+        </h1>
+        
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Sidebar */}
+          <div className="lg:w-1/4">
+            <Sidebar
+              activeSection={activeSection}
+              setActiveSection={setActiveSection}
+              handleLogout={handleLogout}
             />
-          )}
-          {activeSection === "address" && (
-            <AddressSection
-              user={user}
-              updateAddress={updateAddress}
-              deleteAddress={deleteAddress}
-            />
-          )}
-          {activeSection === "orders" && <OrdersSection />}
-          {activeSection === "password" && (
-            <PasswordSection
-              updatePassword={updatePassword}
-            />
-          )}
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:w-3/4">
+            <div className="bg-white p-8 border border-ivory-300">
+              {activeSection === "profile" && (
+                <ProfileSection
+                  user={user}
+                  updateName={updateName}
+                  updatePhone={updatePhone}
+                />
+              )}
+              {activeSection === "address" && (
+                <AddressSection
+                  user={user}
+                  updateAddress={updateAddress}
+                  deleteAddress={deleteAddress}
+                />
+              )}
+              {activeSection === "orders" && <OrdersSection />}
+              {activeSection === "password" && (
+                <PasswordSection
+                  updatePassword={updatePassword}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -34,39 +34,41 @@ export default function Navbar() {
   // Premium Formal Wear Categories
   const categories = [
     {
+      title: "All",
+      href: "/shop"
+    },
+    {
       title: "Tuxedo",
-      items: ["Black Tie", "White Tie", "Modern Slim Fit", "Bespoke Tuxedos"]
+      href: "/shop?category=tuxedo"
     },
     {
       title: "Suits",
-      items: ["Executive Collection", "Wool Suits", "Three-Piece", "Custom Tailored"]
+      href: "/shop?category=suits"
     },
     {
       title: "Sherwani",
-      items: ["Wedding Collection", "Embroidered", "Silk Sherwanis", "Contemporary Cuts"]
+      href: "/shop?category=sherwani"
     },
     {
-      title: "Shirts",
-      items: ["French Cuff", "Tuxedo Shirts", "Premium Cotton", "Custom Monogramming"]
+      title: "Bandhgala",
+      href: "/shop?category=bandhgala"
     },
     {
       title: "Nehru Jacket",
-      items: ["Classic Black", "Jacquard Fabrics", "Bandhgala Styles", "Evening Wear"]
+      href: "/shop?category=nehru-jacket"
     }
   ]
 
   // Profile items based on authentication status
   const profileItems = user
     ? [
-        { label: "Client Profile", href: "/client-profile" },
-        { label: "Fitting Appointments", href: "/appointments" },
-        { label: "Saved Measurements", href: "/measurements" },
+        { label: "My Account", href: "/account" },
+        { label: "Track Order", href: "/appointments" },
         { label: "Logout", action: () => handleLogout() }
       ]
     : [
         { label: "Login", href: "/account/login" },
-        { label: "Register", href: "/account/register" },
-        { label: "Private Consultation", href: "/contact" }
+        { label: "Register", href: "/account/register" }
       ]
 
   const handleLogout = () => {
@@ -138,59 +140,17 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 15 }}
                     className="absolute left-0 top-8 bg-white shadow-xl rounded-md z-50 border border-gray-100 overflow-hidden"
-                    style={{ width: '800px' }}
                   >
-                    <div className="flex">
-                      {/* Category List */}
-                      <div className="w-1/3 border-r border-gray-100">
-                        {categories.map((category, i) => (
-                          <div 
-                            key={i}
-                            className={`px-4 py-3 cursor-pointer transition-colors ${
-                              activeCategory === i ? 'bg-gray-50' : 'hover:bg-gray-50'
-                            }`}
-                            onMouseEnter={() => setActiveCategory(i)}
-                          >
-                            <h3 className="text-sm font-medium text-gray-900">
-                              {category.title}
-                            </h3>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Items Panel */}
-                      <div className="w-2/3 p-4">
-                        {activeCategory !== null && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                          >
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                              {categories[activeCategory].title}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {categories[activeCategory].items.map((item, j) => (
-                                <a
-                                  key={j}
-                                  href="#"
-                                  className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded hover:text-black transition-colors"
-                                >
-                                  {item}
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <a 
-                            href="/bespoke" 
-                            className="inline-flex items-center text-sm font-medium text-black hover:underline"
-                          >
-                            Bespoke Tailoring Service →
-                          </a>
-                        </div>
-                      </div>
+                    <div className="w-56">
+                      {categories.map((category, i) => (
+                        <a
+                          key={i}
+                          href={category.href}
+                          className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          {category.title}
+                        </a>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -339,31 +299,15 @@ export default function Navbar() {
                   >
                     <div className="py-4 pl-4">
                       {categories.map((category, i) => (
-                        <div key={i} className="mb-6">
-                          <h3 className="text-white text-sm font-medium mb-3">
-                            {category.title}
-                          </h3>
-                          <div className="flex flex-col gap-2 pl-2">
-                            {category.items.map((item, j) => (
-                              <a
-                                key={j}
-                                href="#"
-                                className="text-gray-400 hover:text-white transition-colors text-sm py-1"
-                                onClick={() => setMobileMenuOpen(false)}
-                              >
-                                {item}
-                              </a>
-                            ))}
-                          </div>
-                        </div>
+                        <a
+                          key={i}
+                          href={category.href}
+                          className="block text-gray-400 hover:text-white transition-colors text-sm py-2"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {category.title}
+                        </a>
                       ))}
-                      <a 
-                        href="/bespoke" 
-                        className="text-white text-sm font-medium mt-4 inline-flex items-center hover:underline"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Bespoke Tailoring →
-                      </a>
                     </div>
                   </motion.div>
                 )}

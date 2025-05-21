@@ -1,243 +1,194 @@
-'use client'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
-import Link from 'next/link'
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
+import { useCart } from "@/context/CartContext";
+import formatCurrency from "@/lib/formatCurrency";
 
 export default function ProductCard({ product }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [selectedColor, setSelectedColor] = useState(null)
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  // Safeguard against undefined product
+  if (!product) return null;
 
-  // Sample product data structure
-  const defaultProduct = {
-    id: 1,
-    name: "Royal Midnight Tuxedo",
-    price: "£1,895",
-    originalPrice: "£2,450",
-    image: "https://picsum.photos/id/1005/800/1200",
-    secondaryImage: "https://picsum.photos/id/1018/800/1200",
-    category: "Tuxedos",
-    details: "Hand-stitched peak lapel • Super 150s wool • Horn buttons",
-    colors: ["#000000", "#1A1A1A", "#2B2B2B"],
-    isNew: true,
-    isBestSeller: false,
-    rating: 4.8,
-    reviewCount: 42
-  }
+  const [isHovered, setIsHovered] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [wishlisted, setWishlisted] = useState(false);
+  const { addToCart } = useCart();
 
-  const data = product || defaultProduct
+  // Extract clean product ID
+  const productId = useMemo(() => {
+    if (typeof product.id === 'string') {
+      return product.id.split('/').pop();
+    }
+    return product.id;
+  }, [product.id]);
+
+  // Process product images with fallbacks
+  const images = useMemo(() => {
+    if (product.images?.length > 0) {
+      return product.images.map(img => ({
+        url: typeof img === 'string' ? img : img.url || img.src,
+        alt: product.title || "Product image"
+      }));
+    }
+    if (product.featuredImage) {
+      return [{
+        url: typeof product.featuredImage === 'string' 
+          ? product.featuredImage 
+          : product.featuredImage.url,
+        alt: product.title || "Product image"
+      }];
+    }
+    return [{ url: '/placeholder-product.jpg', alt: "Placeholder image" }];
+  }, [product]);
+
+  // Auto-switch to second image on hover if available
+  useEffect(() => {
+    if (isHovered && images.length > 1) {
+      const timer = setTimeout(() => {
+        setCurrentImageIndex(1);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setCurrentImageIndex(0);
+    }
+  }, [isHovered, images.length]);
+
+  // Price calculations
+  const price = product.priceRange?.minVariantPrice?.amount || product.price || 0;
+  const compareAtPrice = product.compareAtPriceRange?.minVariantPrice?.amount || product.compareAtPrice || 0;
+  const discountPercentage = compareAtPrice > price 
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+    : 0;
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: price,
+      image: images[0]?.url,
+      quantity: 1
+    });
+  };
 
   return (
     <motion.div 
       className="relative group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false)
-        setSelectedColor(null)
-      }}
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true, margin: "-50px" }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Badges */}
-      <div className="absolute top-4 left-4 z-10 flex gap-2">
-        {data.isNew && (
-          <span className="px-3 py-1 text-xs bg-white text-black uppercase tracking-wider">
-            New
-          </span>
+      {/* Luxury Badges */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+        {product.tags?.includes('new') && (
+          <motion.span 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="bg-black text-white text-xs font-medium px-3 py-1 rounded-full shadow-lg"
+          >
+            NEW
+          </motion.span>
         )}
-        {data.isBestSeller && (
-          <span className="px-3 py-1 text-xs bg-gold-500 text-black uppercase tracking-wider">
-            Bestseller
-          </span>
+        {discountPercentage > 0 && (
+          <motion.span
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="bg-white text-red-600 border border-red-600 text-xs font-medium px-3 py-1 rounded-full shadow-lg"
+          >
+            -{discountPercentage}%
+          </motion.span>
         )}
       </div>
 
-      {/* Quick View Button */}
-      <motion.button
-        className="absolute top-4 right-4 z-10 p-2 bg-white text-black rounded-full shadow-lg"
-        onClick={() => setIsQuickViewOpen(true)}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ 
-          opacity: isHovered ? 1 : 0,
-          y: isHovered ? 0 : -10
-        }}
-        transition={{ duration: 0.3 }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-      </motion.button>
+      {/* Product Image with Hover Transition */}
+      <Link href={`/product/${productId}`} className="block overflow-hidden rounded-lg bg-gray-50">
+        <div className="relative aspect-[3/4] w-full">
+          <AnimatePresence mode="wait">
+            {/* Main Image */}
+            <motion.div
+              key="main-image"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: isHovered && images.length > 1 ? 0 : 1 }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={images[0]?.url || '/placeholder-product.jpg'}
+                alt={images[0]?.alt}
+                fill
+                className="object-cover object-center transition-transform duration-500"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                priority
+              />
+            </motion.div>
 
-      {/* Image Container */}
-      <div className="relative overflow-hidden">
-        {/* Main Image */}
-        <motion.div
-          animate={{
-            opacity: isHovered ? 0 : 1,
-            scale: isHovered ? 1.05 : 1
-          }}
-          transition={{ duration: 0.4 }}
-          className="aspect-[3/4] relative"
-        >
-          <Image
-            src={data.image}
-            alt={data.name}
-            fill
-            className="object-cover"
-          />
-        </motion.div>
-
-        {/* Secondary Image (appears on hover) */}
-        <motion.div
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            scale: isHovered ? 1 : 1.05
-          }}
-          transition={{ duration: 0.4 }}
-          className="absolute inset-0 aspect-[3/4]"
-        >
-          <Image
-            src={data.secondaryImage}
-            alt={data.name + " alternate view"}
-            fill
-            className="object-cover"
-          />
-        </motion.div>
-
-        {/* Add to Cart Button (slides up on hover) */}
-        <motion.div
-          className="absolute bottom-0 left-0 w-full p-4 z-10"
-          animate={{
-            y: isHovered ? 0 : 50,
-            opacity: isHovered ? 1 : 0
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <button className="w-full py-3 bg-black text-white text-sm tracking-wider hover:bg-gray-900 transition-all">
-            ADD TO CART
-          </button>
-        </motion.div>
-      </div>
+            {/* Hover Image (if available) */}
+            {images.length > 1 && (
+              <motion.div
+                key="hover-image"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isHovered ? 1 : 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={images[1]?.url}
+                  alt={images[1]?.alt}
+                  fill
+                  className="object-cover object-center transition-transform duration-500"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </Link>
 
       {/* Product Info */}
-      <div className="mt-4">
+      <div className="mt-5 space-y-3">
+        {/* Title & Price */}
         <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm text-gray-500 uppercase tracking-wider">{data.category}</p>
-            <h3 className="text-lg font-serif mt-1">{data.name}</h3>
-          </div>
+          <Link href={`/product/${productId}`}>
+            <h3 className="font-medium text-gray-900 group-hover:text-black transition-colors">
+              {product.title}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">{product.productType}</p>
+          </Link>
+          
           <div className="text-right">
-            <p className="text-lg">{data.price}</p>
-            {data.originalPrice && (
-              <p className="text-sm text-gray-500 line-through">{data.originalPrice}</p>
+            {compareAtPrice > 0 ? (
+              <>
+                <span className="text-black font-medium">
+                  {formatCurrency(price)}
+                </span>
+                <span className="block text-xs text-gray-400 line-through">
+                  {formatCurrency(compareAtPrice)}
+                </span>
+              </>
+            ) : (
+              <span className="font-medium text-black">
+                {formatCurrency(price)}
+              </span>
             )}
           </div>
         </div>
-
-        {/* Color Swatches */}
-        <motion.div
-          className="flex gap-2 mt-3"
-          animate={{
-            opacity: isHovered ? 1 : 0.7
-          }}
-        >
-          {data.colors.map((color, i) => (
-            <button
-              key={i}
-              className={`w-5 h-5 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-transparent'}`}
-              style={{ backgroundColor: color }}
-              onClick={(e) => {
-                e.stopPropagation()
-                setSelectedColor(color)
-              }}
-            />
-          ))}
-        </motion.div>
-
-        {/* Rating */}
-        <div className="flex items-center mt-2">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <svg
-                key={i}
-                className={`w-4 h-4 ${i < Math.floor(data.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-          </div>
-          <span className="text-xs text-gray-500 ml-1">
-            ({data.reviewCount})
-          </span>
-        </div>
       </div>
 
-      {/* Quick View Modal */}
-      <AnimatePresence>
-        {isQuickViewOpen && (
-          <motion.div
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-              initial={{ scale: 0.9, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 50 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Quick View Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="relative aspect-square">
-                  <Image
-                    src={data.image}
-                    alt={data.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-8">
-                  <button 
-                    className="absolute top-4 right-4 p-2"
-                    onClick={() => setIsQuickViewOpen(false)}
-                  >
-                    ✕
-                  </button>
-                  <h2 className="text-2xl font-serif">{data.name}</h2>
-                  <p className="text-lg mt-2">{data.price}</p>
-                  <p className="text-sm text-gray-500 mt-4">{data.details}</p>
-                  
-                  <div className="mt-6">
-                    <h3 className="text-sm uppercase tracking-wider">Color</h3>
-                    <div className="flex gap-2 mt-2">
-                      {data.colors.map((color, i) => (
-                        <button
-                          key={i}
-                          className={`w-8 h-8 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-gray-200'}`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => setSelectedColor(color)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button className="w-full mt-8 py-3 bg-black text-white hover:bg-gray-900 transition-all">
-                    ADD TO CART — {data.price}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Floating Glow Effect */}
+      {isHovered && (
+        <motion.div 
+          className="absolute inset-0 rounded-lg pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.05 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            boxShadow: '0 0 100px 20px rgba(0,0,0,0.3)'
+          }}
+        />
+      )}
     </motion.div>
-  )
+  );
 }

@@ -3,18 +3,56 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useUser } from '@/context/UserContext'
+import { loginCustomer } from '@/lib/auth'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
+  const router = useRouter()
+  const { login } = useUser()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
-    // Authentication logic here
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsLoading(false)
+
+    try {
+      const result = await loginCustomer(email, password)
+
+      if (result) {
+        // Store token and expiration time in localStorage
+        localStorage.setItem("shopifyAccessToken", result.token)
+        localStorage.setItem("expiresAt", result.expiresAt)
+
+        // Fetch user data after successful login
+        const userData = await fetch("/api/user", {
+          headers: {
+            Authorization: `Bearer ${result.token}`,
+          },
+        }).then((res) => res.json())
+
+        // Update user context
+        login(result.token, userData)
+
+        setSuccessMessage("Login successful! Redirecting...")
+        
+        // Redirect to account page after delay
+        setTimeout(() => {
+          router.push("/account")
+        }, 1500)
+      } else {
+        setError("Invalid email or password. Please try again.")
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred during login")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -42,6 +80,19 @@ export default function Login() {
           <h1 className="text-3xl font-serif tracking-wider mb-2">WELCOME BACK</h1>
           <div className="w-16 h-px bg-gold-500 mx-auto"></div>
         </div>
+
+        {/* Success and Error Messages */}
+        {successMessage && (
+          <div className="mb-4 text-center text-green-500 text-sm">
+            {successMessage}
+          </div>
+        )}
+        
+        {error && (
+          <div className="mb-4 text-center text-red-500 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

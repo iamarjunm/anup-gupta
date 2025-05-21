@@ -4,38 +4,52 @@ export async function fetchProducts() {
   const endpoint = `${process.env.SHOPIFY_STORE_URL}/api/2023-01/graphql.json`;
   const query = `
     query {
-      products(first: 20) {
+      products(first: 50) {
         edges {
           node {
             id
             title
             handle
+            productType
             descriptionHtml
+            tags
             priceRange {
               minVariantPrice {
                 amount
-                currencyCode
               }
             }
             compareAtPriceRange {
               minVariantPrice {
                 amount
-                currencyCode
               }
+            }
+            featuredImage {
+              url
             }
             images(first: 2) {
               edges {
                 node {
-                  src
+                  url
                 }
               }
             }
-            variants(first: 1) {
+            variants(first: 10) {
               edges {
                 node {
+                  id
+                  title
+                  price {
+                    amount
+                  }
                   compareAtPrice {
                     amount
-                    currencyCode
+                  }
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  image {
+                    url
                   }
                 }
               }
@@ -47,6 +61,7 @@ export async function fetchProducts() {
   `;
 
   try {
+    console.log('Fetching products from:', endpoint); // Log endpoint
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -55,56 +70,44 @@ export async function fetchProducts() {
       },
       body: JSON.stringify({ query }),
     });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Error fetching products data:', response.status, errorData);
-      return [];
-    }
-
+  
     const data = await response.json();
-
+    console.log('Raw API response:', data); // Log raw response
+    
     if (data.errors) {
-      console.error('GraphQL errors:', data.errors);
-      return [];
+      console.error('GraphQL Errors:', data.errors);
+      return { products: [] };
     }
-
-    const products = data.data.products.edges.map((productEdge) => {
-      const product = productEdge.node;
-
-      // Extract prices
-      const originalPrice = parseFloat(
-        product.variants.edges[0]?.node.compareAtPrice?.amount || 
-        product.compareAtPriceRange.minVariantPrice.amount || 
-        0
-      );
-      const discountedPrice = parseFloat(product.priceRange.minVariantPrice.amount);
-      const discountPercentage = originalPrice
-        ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
-        : 0;
-
-      // Extract images
-      const images = product.images.edges.map((edge) => edge.node.src);
-      const frontImage = images[0] || 'https://picsum.photos/200/200'; // Fallback if no image
-      const backImage = images[1] || frontImage; // Use frontImage as fallback for backImage
-
+  
+    const products = data.data.products.edges.map(edge => {
+      const product = edge.node;
       return {
         id: product.id,
-        handle: product.handle, // Add handle here
-        title: product.title,
-        description: product.descriptionHtml,
-        price: `${discountedPrice}`, // Remove currency code for Rs
-        originalPrice: originalPrice > 0 ? `${originalPrice}` : null, // Remove currency code for Rs
-        discountPercentage,
-        frontImage, // Correctly assign frontImage
-        backImage, // Correctly assign backImage
+        title: product.title, 
+        handle: product.handle,
+        productType: product.productType,
+        descriptionHtml: product.descriptionHtml,
+        tags: product.tags,
+        price: product.priceRange.minVariantPrice.amount,
+        compareAtPrice: product.compareAtPriceRange?.minVariantPrice?.amount || null,
+        featuredImage: product.featuredImage?.url,
+        images: product.images.edges.map(imgEdge => imgEdge.node.url),
+        variants: product.variants.edges.map(variantEdge => ({
+          id: variantEdge.node.id,
+          title: variantEdge.node.title,
+          price: variantEdge.node.price.amount,
+          compareAtPrice: variantEdge.node.compareAtPrice?.amount || null,
+          selectedOptions: variantEdge.node.selectedOptions,
+          image: variantEdge.node.image?.url
+        }))
       };
     });
 
-    return products;
+    console.log('Processed products:', products); // Log processed data
+    return { products };
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return [];
+    console.error('Fetch Products Error:', error);
+    return { products: [] };
   }
 }
 
@@ -372,7 +375,12 @@ export async function fetchProductsByCategory(categoryHandle) {
               id
               title
               handle
+              productType
               descriptionHtml
+              tags
+              featuredImage {
+                url
+              }
               priceRange {
                 minVariantPrice {
                   amount
@@ -388,16 +396,27 @@ export async function fetchProductsByCategory(categoryHandle) {
               images(first: 2) {
                 edges {
                   node {
-                    src
+                    url
                   }
                 }
               }
-              variants(first: 1) {
+              variants(first: 10) {
                 edges {
                   node {
+                    id
+                    title
+                    price {
+                      amount
+                    }
                     compareAtPrice {
                       amount
-                      currencyCode
+                    }
+                    selectedOptions {
+                      name
+                      value
+                    }
+                    image {
+                      url
                     }
                   }
                 }
@@ -450,20 +469,35 @@ export async function fetchProductsByCategory(categoryHandle) {
         ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
         : 0;
 
-      const images = product.images.edges.map((edge) => edge.node.src);
-      const frontImage = images[0] || 'https://picsum.photos/200/200';
+      const images = product.images.edges.map(edge => edge.node.url);
+      const frontImage = product.featuredImage?.url || images[0] || 'https://picsum.photos/300';
       const backImage = images[1] || frontImage;
 
       return {
         id: product.id,
         handle: product.handle,
         title: product.title,
-        description: product.descriptionHtml,
-        price: `${discountedPrice}`,
-        originalPrice: originalPrice > 0 ? `${originalPrice}` : null,
+        productType: product.productType,
+        descriptionHtml: product.descriptionHtml,
+        tags: product.tags,
+        price: discountedPrice,
+        compareAtPrice: originalPrice > 0 ? originalPrice : null,
         discountPercentage,
+        featuredImage: product.featuredImage?.url,
+        images,
         frontImage,
         backImage,
+        variants: product.variants.edges.map(variantEdge => {
+          const v = variantEdge.node;
+          return {
+            id: v.id,
+            title: v.title,
+            price: v.price.amount,
+            compareAtPrice: v.compareAtPrice?.amount || null,
+            selectedOptions: v.selectedOptions,
+            image: v.image?.url,
+          };
+        }),
       };
     });
 

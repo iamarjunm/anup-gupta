@@ -11,9 +11,10 @@ export default function HomePage() {
     <>
       <Hero />
       <FeaturedCollections />
-      <EditorialLookbook />
-      <AtelierExperience />
       <BestsellersCollection />
+      {/* <EditorialLookbook /> */}
+      {/* <AtelierExperience /> */}
+      
     </>
   );
 }

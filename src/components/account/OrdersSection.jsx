@@ -63,9 +63,11 @@ const OrdersSection = () => {
   if (loading) {
     return (
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
-        <div className="bg-gray-900 p-6 rounded-lg flex justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <h2 className="text-2xl font-serif font-light tracking-wide mb-6 text-charcoal-900">
+          ORDER HISTORY
+        </h2>
+        <div className="border border-ivory-300 p-12 flex justify-center items-center">
+          <Loader2 className="h-6 w-6 animate-spin text-charcoal-600" />
         </div>
       </div>
     );
@@ -74,9 +76,11 @@ const OrdersSection = () => {
   if (error) {
     return (
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
-        <div className="bg-gray-900 p-6 rounded-lg text-red-400">
-          Error loading orders: {error}
+        <h2 className="text-2xl font-serif font-light tracking-wide mb-6 text-charcoal-900">
+          ORDER HISTORY
+        </h2>
+        <div className="border border-ivory-300 p-6 text-red-600">
+          <p className="text-sm">Error loading orders: {error}</p>
         </div>
       </div>
     );
@@ -85,11 +89,16 @@ const OrdersSection = () => {
   if (!orders.length) {
     return (
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <p>You haven't placed any orders yet.</p>
-          <Link href="/products" className="text-blue-400 hover:underline mt-2 inline-block">
-            Browse products
+        <h2 className="text-2xl font-serif font-light tracking-wide mb-6 text-charcoal-900">
+          ORDER HISTORY
+        </h2>
+        <div className="border border-ivory-300 p-8 text-center">
+          <p className="text-charcoal-600 mb-4">You haven't placed any orders yet.</p>
+          <Link 
+            href="/products" 
+            className="text-xs font-medium tracking-wide text-charcoal-900 hover:text-charcoal-700 underline"
+          >
+            BROWSE OUR COLLECTION
           </Link>
         </div>
       </div>
@@ -98,26 +107,34 @@ const OrdersSection = () => {
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
-      <div className="space-y-4">
+      <h2 className="text-2xl font-serif font-light tracking-wide mb-6 text-charcoal-900">
+        ORDER HISTORY
+      </h2>
+      
+      <div className="space-y-6">
         {orders.map(order => (
-          <div key={order.id} className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <div className="flex justify-between items-start mb-4">
+          <div key={order.id} className="border border-ivory-300 p-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
               <div>
-                <h3 className="font-medium">Order #{order.orderNumber}</h3>
-                <p className="text-sm text-gray-400">{formatDate(order.createdAt)}</p>
+                <h3 className="font-light text-charcoal-900">ORDER #{order.orderNumber}</h3>
+                <p className="text-sm text-charcoal-600 mt-1">
+                  {formatDate(order.createdAt)}
+                </p>
               </div>
+              
               <div className="flex items-center space-x-2">
                 <span className={`h-2 w-2 rounded-full ${getStatusColor(order.status)}`}></span>
-                <span className="text-sm capitalize">{order.status}</span>
+                <span className="text-xs font-medium tracking-wide text-charcoal-600 capitalize">
+                  {order.status}
+                </span>
               </div>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-6 space-y-4">
               {order.lineItems.slice(0, 3).map(item => (
-                <div key={item.id} className="flex items-center py-2">
+                <div key={item.id} className="flex items-start py-2">
                   {item.image && (
-                    <div className="w-12 h-12 bg-gray-800 rounded-md mr-3 overflow-hidden">
+                    <div className="w-16 h-20 bg-ivory-100 mr-4 overflow-hidden">
                       <img 
                         src={item.image} 
                         alt={item.name}
@@ -125,28 +142,31 @@ const OrdersSection = () => {
                       />
                     </div>
                   )}
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-400">
+                  <div className="flex-1">
+                    <p className="font-light text-charcoal-900">{item.name}</p>
+                    <p className="text-sm text-charcoal-600 mt-1">
                       {item.quantity} × ₹{item.price.toFixed(2)}
                     </p>
                   </div>
                 </div>
               ))}
+              
               {order.lineItems.length > 3 && (
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-xs text-charcoal-600">
                   +{order.lineItems.length - 3} more items
                 </p>
               )}
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-gray-800">
-              <p className="font-medium">₹{order.total.toFixed(2)}</p>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center pt-4 border-t border-ivory-300">
+              <p className="font-light text-charcoal-900 mb-2 md:mb-0">
+                ₹{order.total.toFixed(2)}
+              </p>
               <Link 
                 href={`/account/orders/${order.id}`}
-                className="text-blue-400 hover:underline text-sm"
+                className="text-xs font-medium tracking-wide text-charcoal-900 hover:text-charcoal-700 underline"
               >
-                View Details
+                VIEW ORDER DETAILS
               </Link>
             </div>
           </div>
