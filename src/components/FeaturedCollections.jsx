@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link' // Import Link from Next.js
 
 const collections = [
   {
@@ -10,6 +11,7 @@ const collections = [
     subtitle: "Black tie elegance perfected",
     image: "/Tuxedo.jpg",
     cta: "Explore Tuxedos",
+    link: "/shop?category=tuxedo", // Added link
     items: ["Black Tie", "White Tie", "Modern Slim", "Bespoke"]
   },
   {
@@ -18,14 +20,16 @@ const collections = [
     subtitle: "Power dressing redefined",
     image: "/Tuxedo2.JPG",
     cta: "View Suits",
+    link: "/shop?category=suits", // Added link
     items: ["Wool Collection", "Three-Piece", "Double-Breasted", "Custom Fit"]
   },
   {
     id: 3,
     title: "SHERWANI HERITAGE",
     subtitle: "Regal craftsmanship for modern royalty",
-    image: '/Sherwani.JPG',    
+    image: '/Sherwani.JPG',
     cta: "Discover Sherwanis",
+    link: "/shop?category=sherwani", // Added link
     items: ["Wedding", "Embroidered", "Silk", "Contemporary"]
   },
   {
@@ -34,6 +38,7 @@ const collections = [
     subtitle: "Timeless Indian formalwear",
     image: "/Bandhgala.JPG",
     cta: "Explore Bandhgalas",
+    link: "/shop?category=bandhgala", // Added link
     items: ["Jodhpuri", "Silk", "Embroidered", "Contemporary"]
   },
   {
@@ -42,6 +47,7 @@ const collections = [
     subtitle: "The foundation of impeccable style",
     image: "/Shirt.JPG",
     cta: "Browse Shirts",
+    link: "/shop?category=shirts", // Added link
     items: ["French Cuff", "Spread Collar", "Tuxedo", "Custom"]
   },
   {
@@ -50,6 +56,7 @@ const collections = [
     subtitle: "Contemporary elegance with tradition",
     image: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80",
     cta: "View Jackets",
+    link: "/shop?category=nehru-jacket", // Added link
     items: ["Classic Black", "Jacquard", "Evening", "Silk"]
   }
 ]
@@ -61,17 +68,17 @@ export default function FeaturedCollections() {
     target: ref,
     offset: ["start end", "end start"]
   })
-  
+
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1])
   const yText = useTransform(scrollYProgress, [0, 0.5], ["40%", "0%"])
 
   return (
-    <section 
+    <section
       ref={ref}
       className="relative w-full min-h-screen overflow-hidden bg-black"
     >
       {/* Dark Background */}
-      <motion.div 
+      <motion.div
         style={{ opacity: backgroundOpacity }}
         className="absolute inset-0 bg-black z-0"
       >
@@ -85,18 +92,18 @@ export default function FeaturedCollections() {
       </motion.div>
 
       {/* Section Header */}
-      <motion.div 
+      <motion.div
         style={{ y: yText }}
         className="relative z-10 pt-40 pb-24 text-center"
       >
         <p className="text-gold-500 text-sm uppercase tracking-[0.3em] mb-4">
           Signature Collections
         </p>
-        
+
         <h2 className="text-5xl md:text-6xl font-serif font-light tracking-tight text-white mb-6">
           CURATED ELEGANCE
         </h2>
-        
+
         <p className="text-white/80 text-lg font-light tracking-wide max-w-2xl mx-auto">
           Our most coveted designs, handcrafted with uncompromising attention to detail
         </p>
@@ -144,7 +151,7 @@ export default function FeaturedCollections() {
               >
                 {collection.title}
               </motion.h3>
-              
+
               <motion.p
                 animate={{
                   y: hoveredCard === collection.id ? 0 : 15,
@@ -176,21 +183,23 @@ export default function FeaturedCollections() {
               </motion.div>
 
               {/* CTA button */}
-              <motion.button
-                animate={{
-                  y: hoveredCard === collection.id ? 0 : 25,
-                  opacity: hoveredCard === collection.id ? 1 : 0
-                }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="px-6 py-3 bg-white text-black font-medium text-sm tracking-wider hover:bg-gold-500 transition-all"
-              >
-                {collection.cta}
-              </motion.button>
+              <Link href={collection.link}>
+                <motion.button
+                  animate={{
+                    y: hoveredCard === collection.id ? 0 : 25,
+                    opacity: hoveredCard === collection.id ? 1 : 0
+                  }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="px-6 py-3 bg-white text-black font-medium text-sm tracking-wider hover:bg-gold-500 transition-all"
+                >
+                  {collection.cta}
+                </motion.button>
+              </Link>
             </div>
 
             {/* Hover glow effect */}
             {hoveredCard === collection.id && (
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 pointer-events-none"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.1 }}
@@ -205,18 +214,20 @@ export default function FeaturedCollections() {
 
       {/* View All Button */}
       <div className="relative z-20 text-center pb-40">
-        <motion.button
-          whileHover={{ 
-            backgroundColor: "#D4AF37",
-            color: "#000",
-            scale: 1.02
-          }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.3 }}
-          className="px-12 py-4 bg-black border border-gold-500 text-gold-500 text-sm tracking-widest uppercase hover:bg-gold-500 hover:text-black transition-all"
-        >
-          EXPLORE ALL COLLECTIONS
-        </motion.button>
+        <Link href="/shop"> {/* Link for "EXPLORE ALL COLLECTIONS" */}
+          <motion.button
+            whileHover={{
+              backgroundColor: "#D4AF37",
+              color: "#000",
+              scale: 1.02
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="px-12 py-4 bg-black border border-gold-500 text-gold-500 text-sm tracking-widest uppercase hover:bg-gold-500 hover:text-black transition-all"
+          >
+            EXPLORE ALL COLLECTIONS
+          </motion.button>
+        </Link>
       </div>
     </section>
   )
