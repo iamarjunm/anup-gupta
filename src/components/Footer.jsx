@@ -12,28 +12,18 @@ export default function LuxuryFooter() {
     {
       title: 'Collections',
       links: [
-        { name: 'Tuxedo Collection', href: '/collections/tuxedos' },
-        { name: 'Executive Suits', href: '/collections/suits' },
-        { name: 'Sherwani Heritage', href: '/collections/sherwanis' },
-        { name: 'Nehru Jackets', href: '/collections/jackets' },
-      ]
-    },
-    {
-      title: 'Services',
-      links: [
-        { name: 'Bespoke Tailoring', href: '/bespoke' },
-        { name: 'Personal Styling', href: '/styling' },
-        { name: 'Wedding Consultations', href: '/weddings' },
-        { name: 'Corporate Services', href: '/corporate' },
+        { name: 'Tuxedo Collection', href: '/shop?category=tuxedo' },
+        { name: 'Executive Suits', href: '/shop?category=suits' },
+        { name: 'Sherwani Heritage', href: '/shop?category=sherwani' },
+        { name: 'Nehru Jackets', href: '/shop?category=nehru-jacket' },
+        { name: 'Bandhgala', href: '/shop?category=bandhgala' },
+        { name: 'Shirts', href: '//shop?category=shirts' },
       ]
     },
     {
       title: 'About',
       links: [
         { name: 'Our Heritage', href: '/about' },
-        { name: 'Craftsmanship', href: '/craftsmanship' },
-        { name: 'Sustainability', href: '/sustainability' },
-        { name: 'Press', href: '/press' },
       ]
     }
   ]
@@ -62,7 +52,7 @@ export default function LuxuryFooter() {
                 92038190132
               </p>
               <p className="text-white/70 hover:text-white transition-colors">
-                appointments@anupgupta.com
+                anupguptacouture22@gmail.com
               </p>
             </address>
             
@@ -156,45 +146,6 @@ export default function LuxuryFooter() {
 
         {/* Bottom Row */}
         <div className="flex flex-col md:flex-row justify-between items-center">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="mb-6 md:mb-0"
-          >
-            <Link href="/">
-              <Image 
-                src="/logo.svg" 
-                alt="Atelier Logo" 
-                width={120} 
-                height={40} 
-                className="filter brightness-0 invert"
-              />
-            </Link>
-          </motion.div>
-
-          {/* Social Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="flex space-x-6 mb-6 md:mb-0"
-          >
-            {socialLinks.map((social, index) => (
-              <Link 
-                key={social.name}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/50 hover:text-white transition-colors"
-              >
-                {social.name}
-              </Link>
-            ))}
-          </motion.div>
 
           {/* Legal Links */}
           <motion.div
@@ -209,9 +160,6 @@ export default function LuxuryFooter() {
             </Link>
             <Link href="/terms" className="text-white/50 hover:text-white transition-colors">
               Terms of Service
-            </Link>
-            <Link href="/accessibility" className="text-white/50 hover:text-white transition-colors">
-              Accessibility
             </Link>
           </motion.div>
         </div>

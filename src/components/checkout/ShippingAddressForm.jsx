@@ -17,7 +17,7 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
       try {
         setLoading(true);
         const token = localStorage.getItem("shopifyAccessToken");
-        
+
         if (!token && user) {
           setError("Please sign in to manage addresses");
           setLoaded(true);
@@ -30,14 +30,15 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
           });
 
           if (!response.ok) throw new Error("Failed to fetch addresses");
-          
+
           const userData = await response.json();
           if (userData.addresses) {
             setAddresses(userData.addresses);
-            
-            const addressToSelect = initialAddress || 
-                                 userData.addresses.find(addr => addr.isPrimary) || 
-                                 userData.addresses[0];
+
+            const addressToSelect =
+              initialAddress ||
+              userData.addresses.find((addr) => addr.isPrimary) ||
+              userData.addresses[0];
             if (addressToSelect) {
               setSelectedAddress(addressToSelect);
               onSubmit(addressToSelect);
@@ -90,8 +91,8 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
                   key={address.id}
                   whileHover={{ y: -2 }}
                   className={`p-5 border ${
-                    selectedAddress?.id === address.id 
-                      ? "border-charcoal-900" 
+                    selectedAddress?.id === address.id
+                      ? "border-charcoal-900"
                       : "border-ivory-300 hover:border-charcoal-500"
                   } transition-colors`}
                 >
@@ -121,7 +122,7 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
                         onClick={() => handleSelectAddress(address)}
                         className={`px-4 py-2 text-xs font-medium tracking-wide ${
                           selectedAddress?.id === address.id
-                            ? "bg-charcoal-900 text-white"
+                            ? "bg-charcoal-900 text-black"
                             : "border border-charcoal-900 text-charcoal-900 hover:bg-ivory-200"
                         } transition-colors`}
                       >
@@ -135,10 +136,10 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
           ) : (
             <div className="text-center py-6 border border-ivory-300">
               <p className="mb-4 text-charcoal-600">No saved addresses found.</p>
-              <Link 
-                href="/account" 
-                className="px-6 py-3 bg-charcoal-900 text-white text-xs font-medium tracking-wide 
-                          hover:bg-charcoal-800 transition-colors inline-block"
+              <Link
+                href="/account"
+                className="px-6 py-3 bg-charcoal-900 text-ivory-50 text-xs font-medium tracking-wide
+                           hover:bg-charcoal-800 transition-colors inline-block border border-black"
               >
                 ADD ADDRESS IN ACCOUNT
               </Link>
@@ -150,10 +151,10 @@ const ShippingAddressForm = ({ user, onSubmit, initialAddress }) => {
       {!user && loaded && (
         <div className="text-center py-6 border border-ivory-300">
           <p className="mb-4 text-charcoal-600">Please sign in to select an address.</p>
-          <Link 
-            href="/account/login" 
-            className="px-6 py-3 border border-charcoal-900 text-charcoal-900 text-xs 
-                      font-medium tracking-wide hover:bg-ivory-200 transition-colors inline-block"
+          <Link
+            href="/account/login"
+            className="px-6 py-3 border border-charcoal-900 text-charcoal-900 text-xs
+                       font-medium tracking-wide hover:bg-ivory-200 transition-colors inline-block"
           >
             SIGN IN
           </Link>

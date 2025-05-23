@@ -147,7 +147,7 @@ export default function Login() {
         <div className="text-center mt-8 text-sm">
           <p className="text-gray-400">
             New to our atelier?{' '}
-            <Link href="/register" className="text-gold-500 hover:underline">
+            <Link href="/account/register" className="text-gold-500 hover:underline">
               Create an account
             </Link>
           </p>

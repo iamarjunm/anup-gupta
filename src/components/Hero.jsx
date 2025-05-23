@@ -2,31 +2,52 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const heroSlides = [
   {
     image: '/Tuxedo.jpg',
     title: "TUXEDO COLLECTION",
     subtitle: "Black tie elegance perfected",
-    cta: "Explore Tuxedos"
+    cta: "Explore Tuxedos",
+    link: "/shop?category=tuxedo" // Add a link for the CTA
   },
   {
-    image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80',
+    image: '/Tuxedo2.JPG',
     title: "EXECUTIVE SUITS",
     subtitle: "Power dressing redefined",
-    cta: "View Suits"
+    cta: "View Suits",
+    link: "/shop?category=suits"
   },
   {
-    image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80',
+    image: '/Sherwani.JPG',
     title: "SHERWANI HERITAGE",
     subtitle: "Regal craftsmanship for modern royalty",
-    cta: "Discover Sherwanis"
+    cta: "Discover Sherwanis",
+    link: "/shop?category=sherwani"
+  },
+  {
+    // Placeholder image for Shirts - ideally replace with a high-quality product shot
+    image: "/Shirt.JPG",    
+    title: "LUXURY SHIRTING",
+    subtitle: "The foundation of a flawless ensemble",
+    cta: "Shop Shirts",
+    link: "/shop?category=shirts"
+  },
+  {
+    // Placeholder image for Bandhgalas - ideally replace with a high-quality product shot
+    image: '/Bandhgala.JPG',
+    title: "BANDHGALA IMPERIAL",
+    subtitle: "Distinctive heritage, refined for the modern connoisseur",
+    cta: "Explore Bandhgalas",
+    link: "/shop?category=bandhgala"
   },
   {
     image: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80',
     title: "NEHRU JACKETS",
     subtitle: "Contemporary elegance with tradition",
-    cta: "Browse Jackets"
+    cta: "Browse Jackets",
+    link: "/shop?category=nehru-jacket"
   }
 ]
 
@@ -134,7 +155,7 @@ export default function Hero() {
           >
             <h1 className="text-5xl md:text-7xl font-serif font-normal tracking-wider mb-6">
               <span className="block text-white">{heroSlides[currentIndex].title}</span>
-              <span className="block text-gold-500 text-2xl md:text-3xl font-light mt-4">
+              <span className="block text-white text-2xl md:text-3xl font-light mt-4">
                 {heroSlides[currentIndex].subtitle}
               </span>
             </h1>
@@ -145,12 +166,11 @@ export default function Hero() {
               transition={{ delay: 0.6, type: 'spring' }}
               className="mt-12 flex gap-6 justify-center"
             >
-              <button className="px-8 py-4 bg-white text-black font-medium rounded-sm hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                {heroSlides[currentIndex].cta}
-              </button>
-              <button className="px-8 py-4 border border-white text-white font-medium rounded-sm hover:bg-white hover:text-black transition-all duration-300 transform hover:scale-105 shadow-lg">
-                New Arrivals
-              </button>
+              <Link href={heroSlides[currentIndex].link}>
+                <button className="px-8 py-4 bg-white text-black font-medium rounded-sm hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                  {heroSlides[currentIndex].cta}
+                </button>
+              </Link>
             </motion.div>
           </motion.div>
         </AnimatePresence>

@@ -10,7 +10,7 @@ const ProductGrid = (props) => {
 
   if (loading) {
     return (
-      <div className="max-w-[1600px] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-10 gap-y-16">
+      <div className="max-w-[1600px] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-10 gap-y-16"> {/* Adjusted */}
         {[...Array(8)].map((_, index) => (
           <motion.div
             key={index}
@@ -36,7 +36,7 @@ const ProductGrid = (props) => {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-10 gap-y-16">
+    <div className="max-w-[1600px] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-10 gap-y-16"> {/* Adjusted */}
       {products.map((product) => (
         <motion.div
           key={product.id}
@@ -50,5 +50,4 @@ const ProductGrid = (props) => {
     </div>
   );
 };
-
 export default ProductGrid;

@@ -24,8 +24,8 @@ function ShopPageContent() {
     { label: "Sherwani", href: "/shop?category=sherwani" },
     { label: "Tuxedo", href: "/shop?category=tuxedo" },
     { label: "Bandhgala", href: "/shop?category=bandhgala" },
-    { label: "Suit", href: "/shop?category=suit" },
-    { label: "Shirt", href: "/shop?category=shirt" },
+    { label: "Suit", href: "/shop?category=suits" },
+    { label: "Shirt", href: "/shop?category=shirts" },
     { label: "Nehru Jacket", href: "/shop?category=nehru-jacket" }
   ];
 

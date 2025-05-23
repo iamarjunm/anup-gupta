@@ -59,8 +59,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">EMAIL US</h4>
-                <p className="text-gray-300">inquiries@elegance.com</p>
-                <p className="text-gray-300">appointments@elegance.com</p>
+                <p className="text-gray-300">anupguptacouture22@gmail.com</p>
               </div>
             </div>
             
@@ -73,7 +72,7 @@ export default function ContactPage() {
               <div>
                 <h4 className="text-xl font-serif mb-1">CALL US</h4>
                 <p className="text-gray-300">+44 20 7123 4567</p>
-                <p className="text-gray-300">Mon-Fri: 9AM - 6PM GMT</p>
+                <p className="text-gray-300">Mon-Fri: 9AM - 6PM IST</p>
               </div>
             </div>
           </div>
@@ -94,8 +93,7 @@ export default function ContactPage() {
               Please direct all inquiries to our email addresses listed.
             </p>
             <div className="space-y-2">
-              <p className="text-gray-300">General inquiries: <span className="text-white">inquiries@elegance.com</span></p>
-              <p className="text-gray-300">Appointments: <span className="text-white">appointments@elegance.com</span></p>
+              <p className="text-gray-300">General inquiries & Appointments: <span className="text-white">anupguptacouture22@gmail.com</span></p>
             </div>
           </div>
         </motion.div>
