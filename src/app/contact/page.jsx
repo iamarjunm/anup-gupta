@@ -45,9 +45,9 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">OUR ATELIER</h4>
-                <p className="text-gray-300">123 Savile Row, Mayfair</p>
-                <p className="text-gray-300">London, W1S 3JE</p>
-                <p className="text-gray-300">United Kingdom</p>
+                <p className="text-gray-300">II-A-1, Motilal Nehru Marg, Pocket B</p>
+                <p className="text-gray-300">Nehru Nagar II, Ghaziabad</p>
+                <p className="text-gray-300">Uttar Pradesh, India</p>
               </div>
             </div>
             
@@ -71,7 +71,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">CALL US</h4>
-                <p className="text-gray-300">+44 20 7123 4567</p>
+                <p className="text-gray-300">9625981155</p>
                 <p className="text-gray-300">Mon-Fri: 9AM - 6PM IST</p>
               </div>
             </div>
