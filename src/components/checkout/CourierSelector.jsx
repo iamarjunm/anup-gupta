@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchProductWeight } from "@/lib/fetchProductWeight.js";
 import { Loader2 } from "lucide-react";
 
-const ShippingOptions = ({
+const CourierSelector = ({
   shippingRates,
   setShippingRates,
   selectedShippingRate,
@@ -13,7 +13,7 @@ const ShippingOptions = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const PICKUP_POSTCODE = "201306";
+  const PICKUP_POSTCODE = "201001";
   const COUNTRY = "India";
 
   useEffect(() => {
@@ -226,4 +226,4 @@ const ShippingOptions = ({
   );
 };
 
-export default ShippingOptions;
+export default CourierSelector;

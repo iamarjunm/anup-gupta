@@ -26,7 +26,13 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.variantId === product.variantId);
+      const existingItem = prevCart.find(
+        (item) =>
+          item.variantId === product.variantId &&
+          (!item.customMeasurements ||
+            JSON.stringify(item.customMeasurements) ===
+              JSON.stringify(product.customMeasurements))
+      );
       if (existingItem) {
         return prevCart.map((item) =>
           item.variantId === product.variantId
@@ -38,11 +44,11 @@ export const CartProvider = ({ children }) => {
       }
     });
   };
-  
+
   const removeFromCart = (variantId) => {
     setCart((prevCart) => prevCart.filter((item) => item.variantId !== variantId));
   };
-  
+
   const updateQuantity = (variantId, newQuantity) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
@@ -50,7 +56,6 @@ export const CartProvider = ({ children }) => {
       )
     );
   };
-  
 
   return (
     <CartContext.Provider

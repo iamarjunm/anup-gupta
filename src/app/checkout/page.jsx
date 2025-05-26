@@ -1,3 +1,4 @@
+// src/app/checkout/page.js
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -6,9 +7,10 @@ import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import UserInformationForm from "@/components/checkout/UserInformationForm";
 import ShippingAddressForm from "@/components/checkout/ShippingAddressForm";
-import ShippingOptions from "@/components/checkout/ShippingOptions";
+import CourierSelector from "@/components/checkout/CourierSelector";
 import OrderSummary from "@/components/checkout/OrderSummary";
-import PaymentButton from "@/components/checkout/PaymentButton"; 
+import PaymentButton from "@/components/checkout/PaymentButton"; // Re-import PaymentButton
+import PaymentMethodSelector from "@/components/checkout/PaymentMethodSelector";
 import Link from "next/link";
 
 const CheckoutPage = () => {
@@ -16,7 +18,6 @@ const CheckoutPage = () => {
   const { user } = useUser();
   const router = useRouter();
 
-  // Redirect if cart is empty or user not logged in
   useEffect(() => {
     if (cart.length === 0) {
       router.push("/cart");
@@ -29,7 +30,6 @@ const CheckoutPage = () => {
     }
   }, [cart, user, router]);
 
-  // Initialize form data with user information if available
   const [formData, setFormData] = useState({
     fullName: user ? `${user.firstName} ${user.lastName}` : "",
     email: user?.email || "",
@@ -55,8 +55,8 @@ const CheckoutPage = () => {
   const [shippingRates, setShippingRates] = useState([]);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("prepaid");
 
-  // Sync form data when user changes
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -64,7 +64,7 @@ const CheckoutPage = () => {
         fullName: `${user.firstName} ${user.lastName}`,
         email: user.email || prev.email
       }));
-      
+
       setShippingAddress(prev => ({
         ...prev,
         firstName: user.firstName || prev.firstName,
@@ -81,56 +81,30 @@ const CheckoutPage = () => {
       }));
     }
   }, [user]);
-  
 
   useEffect(() => {
-    if (!user) return;
-    
-    if (window.Razorpay) {
-      setRazorpayLoaded(true);
+    if (!user || selectedPaymentMethod !== "prepaid") {
+      const existingScript = document.getElementById('razorpay-checkout-script');
+      if (existingScript) {
+        existingScript.remove();
+        setRazorpayLoaded(false);
+      }
       return;
     }
-    
-    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
-      console.error("Missing Razorpay key ID in env");
-      setError("Payment system error. Please contact support.");
-      return;
-    }    
-  
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => {
-      setRazorpayLoaded(true);
-    };
-    script.onerror = () => {
-      setError("Failed to load payment processor. Please refresh the page.");
-    };
-    document.body.appendChild(script);
-  
-    return () => {
-      if (script.parentNode) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [user]);
 
-useEffect(() => {
-    if (!user) return; // Don't load payment if not authenticated
-    
-    // Load Razorpay script
     if (window.Razorpay) {
       setRazorpayLoaded(true);
       return;
     }
-    
+
     if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
       console.error("Missing Razorpay key ID in env");
       setError("Payment system error. Please contact support.");
       return;
-    }    
-  
+    }
+
     const script = document.createElement("script");
+    script.id = 'razorpay-checkout-script';
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     script.onload = () => {
@@ -140,13 +114,13 @@ useEffect(() => {
       setError("Failed to load payment processor. Please refresh the page.");
     };
     document.body.appendChild(script);
-  
+
     return () => {
       if (script.parentNode) {
-        document.body.removeChild(script);
+        script.remove();
       }
     };
-  }, [user]);
+  }, [user, selectedPaymentMethod]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -183,124 +157,9 @@ useEffect(() => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!user) {
-      setError("Please login to complete your purchase");
-      sessionStorage.setItem('checkoutRedirect', '/checkout');
-      router.push("/account/login");
-      return;
-    }
-    
-    setLoading(true);
-    setError("");
-  
-    try {
-      // Validate inputs
-      if (!selectedShippingRate) throw new Error("Please select shipping method");
-      if (!formData.email) throw new Error("Email is required");
-      if (!shippingAddress.phone) throw new Error("Phone number is required");
-  
-      // Create Razorpay order
-      const razorpayResponse = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cart: cart.map(item => ({
-            variantId: item.variantId,
-            quantity: item.quantity,
-            price: item.price
-          })),
-          email: formData.email,
-          shippingAddress,
-          totalAmount: total,
-          selectedShippingRate
-        }),
-      });
-  
-      if (!razorpayResponse.ok) {
-        const errorData = await razorpayResponse.json();
-        throw new Error(errorData.error || "Payment initialization failed");
-      }
-  
-      const { orderId: razorpayOrderId } = await razorpayResponse.json();
-  
-      // Initialize Razorpay payment
-      const rzp = new window.Razorpay({
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: total * 100, // Razorpay expects amount in paise
-        currency: "INR",
-        name: "Mystique Apparel",
-        order_id: razorpayOrderId,
-        handler: async (response) => {
-          try {
-            setLoading(true);
-            
-            // Create Shopify order
-            const orderResponse = await fetch("/api/create-shopify-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpaySignature: response.razorpay_signature,
-                cart: cart.map(item => ({
-                  variantId: item.variantId,
-                  quantity: item.quantity,
-                  price: item.price
-                })),
-                email: formData.email,
-                shippingAddress: {
-                  ...shippingAddress,
-                  countryCode: 'IN'
-                },
-                shippingOption: {
-                  title: selectedShippingRate.title,
-                  price: selectedShippingRate.price,
-                  code: selectedShippingRate.code || 'standard'
-                },
-                totalAmount: total
-              }),
-            });
-  
-            if (!orderResponse.ok) {
-              const errorData = await orderResponse.json();
-              throw new Error(errorData.error || "Order creation failed");
-            }
-  
-            const orderData = await orderResponse.json();
-            router.push(`/order-confirmation?orderId=${orderData.orderId}`);
-            
-          } catch (error) {
-            console.error("Order processing error:", error);
-            setError(`Payment succeeded but order failed. Contact support with ID: ${response.razorpay_payment_id}`);
-          } finally {
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: formData.fullName,
-          email: formData.email,
-          contact: shippingAddress.phone,
-        },
-        notes: {
-          internalNote: "Created via web checkout"
-        }
-      });
-  
-      rzp.on("payment.failed", (response) => {
-        setError(`Payment failed: ${response.error.description}`);
-      });
-  
-      rzp.open();
-  
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // The handleSubmit function is now removed from CheckoutPage
+  // and its logic is moved to the PaymentButton component.
+  // The PaymentButton will receive all necessary props to perform the submission.
 
   if (!user) {
     return (
@@ -311,17 +170,17 @@ useEffect(() => {
           </h2>
           <p className="text-charcoal-600 mb-6">You need to be logged in to proceed with checkout.</p>
           <div className="flex flex-col gap-3">
-            <Link 
-              href="/account/login" 
-              className="px-6 py-3 bg-charcoal-900 text-white text-xs font-medium tracking-wide 
+            <Link
+              href="/account/login"
+              className="px-6 py-3 bg-charcoal-900 text-white text-xs font-medium tracking-wide
                         hover:bg-charcoal-800 transition-colors"
               onClick={() => sessionStorage.setItem('checkoutRedirect', '/checkout')}
             >
               LOGIN
             </Link>
-            <Link 
-              href="/account/register" 
-              className="px-6 py-3 border border-charcoal-900 text-charcoal-900 text-xs 
+            <Link
+              href="/account/register"
+              className="px-6 py-3 border border-charcoal-900 text-charcoal-900 text-xs
                         font-medium tracking-wide hover:bg-ivory-200 transition-colors"
               onClick={() => sessionStorage.setItem('checkoutRedirect', '/checkout')}
             >
@@ -341,9 +200,9 @@ useEffect(() => {
             YOUR CART IS EMPTY
           </h2>
           <p className="text-charcoal-600 mb-6">Add some products to your cart before checking out.</p>
-          <Link 
-            href="/shop" 
-            className="px-6 py-3 bg-charcoal-900 text-white text-xs font-medium tracking-wide 
+          <Link
+            href="/shop"
+            className="px-6 py-3 bg-charcoal-900 text-white text-xs font-medium tracking-wide
                       hover:bg-charcoal-800 transition-colors"
           >
             CONTINUE SHOPPING
@@ -359,22 +218,26 @@ useEffect(() => {
         <h1 className="text-3xl font-serif font-light tracking-tight text-charcoal-900 text-center mb-12">
           CHECKOUT
         </h1>
-        
+
         {error && (
           <div className="mb-8 p-4 border-l-4 border-red-600 bg-red-50">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Column - Forms */}
           <div className="space-y-8">
-            <UserInformationForm 
-              formData={formData} 
-              handleChange={handleChange} 
-              user={user} 
+            <UserInformationForm
+              formData={formData}
+              handleChange={handleChange}
+              user={user}
             />
-            
+<PaymentMethodSelector
+                          selectedPaymentMethod={selectedPaymentMethod}
+                          setSelectedPaymentMethod={setSelectedPaymentMethod}
+                        />
+                      </div>
             <ShippingAddressForm
               formData={shippingAddress}
               handleChange={handleShippingAddressChange}
@@ -382,8 +245,10 @@ useEffect(() => {
               updateAddress={updateAddress}
               onSubmit={handleShippingAddressSubmit}
             />
+
             
-            <ShippingOptions
+
+            <CourierSelector
               shippingRates={shippingRates}
               setShippingRates={setShippingRates}
               selectedShippingRate={selectedShippingRate}
@@ -391,25 +256,31 @@ useEffect(() => {
               shippingAddress={shippingAddress}
               cart={cart}
             />
-          </div>
-          
+
+            
+
           {/* Right Column - Order Summary */}
           <div className="lg:pl-8">
-            <OrderSummary 
-              cart={cart} 
-              selectedShippingRate={selectedShippingRate} 
+            <OrderSummary
+              cart={cart}
+              selectedShippingRate={selectedShippingRate}
               setTotal={setTotal}
             />
-            
+
             <div className="mt-8 border-t border-ivory-300 pt-8">
               <PaymentButton
                 loading={loading}
+                setLoading={setLoading} // Pass setLoading
                 selectedShippingRate={selectedShippingRate}
-                onClick={handleSubmit}
                 cart={cart}
                 razorpayLoaded={razorpayLoaded}
+                selectedPaymentMethod={selectedPaymentMethod} // Pass payment method
+                total={total} // Pass total
+                formData={formData} // Pass user form data
+                shippingAddress={shippingAddress} // Pass shipping address data
+                setError={setError} // Pass setError function
               />
-              
+
               <p className="mt-4 text-xs text-charcoal-600 text-center">
                 By completing your purchase, you agree to our{' '}
                 <Link href="/terms" className="underline hover:text-charcoal-900">

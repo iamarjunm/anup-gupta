@@ -14,6 +14,15 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [isCustomSizeSelected, setIsCustomSizeSelected] = useState(false); // New state for custom size
+  const [customMeasurements, setCustomMeasurements] = useState({ // New state for measurements
+    chest: '',
+    waist: '',
+    hips: '',
+    sleeveLength: '',
+    inseam: '',
+    // Add any other relevant measurements for formal wear
+  });
   const [quantity, setQuantity] = useState(1);
   const [sizes, setSizes] = useState([]);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -72,43 +81,94 @@ export default function ProductDetails() {
   };
 
   const handleSizeSelection = (size) => {
-    if (sizes.find((s) => s.size === size)?.available) {
-      setSelectedSize(size);
+    // If "Custom Size" is selected, clear custom measurements and set the flag
+    if (size === 'Custom Size') {
+      setIsCustomSizeSelected(true);
+      setSelectedSize('Custom Size');
+      setCustomMeasurements({
+        chest: '',
+        waist: '',
+        hips: '',
+        sleeveLength: '',
+        inseam: '',
+      });
+    } else {
+      // For standard sizes
+      if (sizes.find((s) => s.size === size)?.available) {
+        setIsCustomSizeSelected(false);
+        setSelectedSize(size);
+      }
     }
+  };
+
+  const handleMeasurementChange = (e) => {
+    const { name, value } = e.target;
+    setCustomMeasurements((prevMeasurements) => ({
+      ...prevMeasurements,
+      [name]: value,
+    }));
   };
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      triggerToast('Please select a size to add to cart.');
+      triggerToast('Please select a size or "Custom Size" to add to cart.');
       return;
     }
 
-    const selectedVariant = product.variants.find(
-      (variant) => variant.title === selectedSize || variant.size === selectedSize
-    );
-
-    if (!selectedVariant) {
-      triggerToast('Selected size variant not found.');
-      return;
-    }
-
-    addToCart({
+    let itemToAdd = {
       id: product.id,
-      variantId: selectedVariant.id,
       title: product.title,
       price: parseFloat(product.price),
       image: product.images[0] || '/luxury-fallback.jpg',
-      size: selectedSize,
       quantity: quantity,
       productHandle: product.handle,
-    });
+    };
 
+    if (isCustomSizeSelected) {
+      // For custom size, we don't have a specific Shopify variant ID.
+      // We'll store measurements as a property of the line item.
+      // You might need a "dummy" variant in Shopify for "Custom Size" if you want to track it that way.
+      itemToAdd = {
+        ...itemToAdd,
+        size: 'Custom Size',
+        customMeasurements: customMeasurements, // Add custom measurements
+        variantId: product.variants[0]?.id, // Use a default variant ID if needed by your cart
+        // Consider having a specific variant in Shopify called "Custom Size" if you need to track it
+      };
+
+      // Basic validation for custom measurements
+      const allMeasurementsFilled = Object.values(customMeasurements).every(
+        (measurement) => measurement.trim() !== ''
+      );
+      if (!allMeasurementsFilled) {
+        triggerToast('Please provide all custom measurements.');
+        return;
+      }
+
+    } else {
+      // For standard sizes
+      const selectedVariant = product.variants.find(
+        (variant) => variant.title === selectedSize || variant.size === selectedSize
+      );
+
+      if (!selectedVariant) {
+        triggerToast('Selected size variant not found.');
+        return;
+      }
+      itemToAdd = {
+        ...itemToAdd,
+        variantId: selectedVariant.id,
+        size: selectedSize,
+      };
+    }
+
+    addToCart(itemToAdd);
     triggerToast('Product added to cart!');
   };
 
   const handleBuyNow = () => {
     if (!selectedSize) {
-      triggerToast('Please select a size to proceed.');
+      triggerToast('Please select a size or "Custom Size" to proceed.');
       return;
     }
     handleAddToCart();
@@ -117,7 +177,7 @@ export default function ProductDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ivory-50 flex items-center justify-center"> {/* Removed pt-20 */}
+      <div className="min-h-screen bg-ivory-50 flex items-center justify-center">
         <div className="animate-pulse text-charcoal-900 font-serif tracking-wider text-xl">
           LOADING MASTERPIECE...
         </div>
@@ -127,7 +187,7 @@ export default function ProductDetails() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-ivory-50 flex items-center justify-center"> {/* Removed pt-20 */}
+      <div className="min-h-screen bg-ivory-50 flex items-center justify-center">
         <p className="text-charcoal-900 font-serif text-lg">This exclusive piece is currently unavailable.</p>
       </div>
     );
@@ -136,20 +196,18 @@ export default function ProductDetails() {
   const mainImage = product.images[selectedImage] || '/placeholder-luxury.jpg';
 
   return (
-    <div className="bg-ivory-50 text-charcoal-900 min-h-screen"> {/* Removed pt-20 */}
+    <div className="bg-ivory-50 text-charcoal-900 min-h-screen">
       {showToast && (
-       <div className="fixed top-20 right-6 bg-charcoal-900 text-ivory-50 px-6 py-3 rounded-sm shadow-lg z-50 animate-fade-in text-sm transition-all duration-300 ease-in-out">
-  {toastMessage}
-</div>
-
+        <div className="fixed top-20 right-6 bg-charcoal-900 text-ivory-50 px-6 py-3 rounded-sm shadow-lg z-50 animate-fade-in text-sm transition-all duration-300 ease-in-out">
+          {toastMessage}
+        </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8"> {/* Adjusted py-8 to py-12 for top spacing without push */}
+      <div className="max-w-7xl mx-auto px-4 py-12 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Product Images */}
-          <div className="space-y-4"> {/* Reduced space-y for tighter image grouping */}
-            {/* Main Product Image */}
-            <div className="relative w-full overflow-hidden shadow-md aspect-[3/4]"> {/* Removed rounded-lg */}
+          <div className="space-y-4">
+            <div className="relative w-full overflow-hidden shadow-md aspect-[3/4]">
               <Image
                 src={mainImage}
                 alt={product.title}
@@ -165,15 +223,14 @@ export default function ProductDetails() {
               )}
             </div>
 
-            {/* Thumbnail Images */}
             {product.images.length > 1 && (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2"> {/* Reduced gap */}
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`block aspect-square overflow-hidden border transition-all duration-200 ${ /* Reduced border-2 to border */
-                      selectedImage === index ? 'border-charcoal-900' : 'border-gray-200 opacity-70 hover:opacity-100' // Removed scale-105 on hover
+                    className={`block aspect-square overflow-hidden border transition-all duration-200 ${
+                      selectedImage === index ? 'border-charcoal-900' : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                     aria-label={`View image ${index + 1} of ${product.title}`}
                   >
@@ -181,8 +238,8 @@ export default function ProductDetails() {
                       src={image}
                       alt={`${product.title} - View ${index + 1}`}
                       className="w-full h-full object-cover"
-                      width={100} // Slightly reduced thumbnail size
-                      height={100} // Slightly reduced thumbnail size
+                      width={100}
+                      height={100}
                     />
                   </button>
                 ))}
@@ -192,14 +249,14 @@ export default function ProductDetails() {
 
           {/* Product Information */}
           <div className="flex flex-col pt-4 lg:pt-0">
-            <h1 className="text-4xl font-serif font-normal tracking-tight mb-2 leading-tight"> {/* Reduced mb-3 to mb-2 */}
+            <h1 className="text-4xl font-serif font-normal tracking-tight mb-2 leading-tight">
               {product.title}
             </h1>
-            <p className="text-charcoal-600 text-sm mb-6 font-light"> {/* Reduced text-base to text-sm */}
+            <p className="text-charcoal-600 text-sm mb-6 font-light">
               {product.productType || 'Luxury Formalwear'}
             </p>
 
-            <div className="mb-7 flex items-baseline"> {/* Adjusted mb-8 to mb-7 */}
+            <div className="mb-7 flex items-baseline">
               <span className="text-3xl font-semibold">
                 {new Intl.NumberFormat('en-IN', {
                   style: 'currency',
@@ -219,58 +276,155 @@ export default function ProductDetails() {
                 )}
             </div>
 
-            <div className="prose max-w-none text-charcoal-700 text-sm leading-relaxed mb-7"> {/* Adjusted mb-8 to mb-7 */}
+            <div className="prose max-w-none text-charcoal-700 text-sm leading-relaxed mb-7">
               <div dangerouslySetInnerHTML={{ __html: product.description }} />
             </div>
 
             {/* Size Selection */}
-            {sizes.length > 0 && (
-              <div className="mb-7"> {/* Adjusted mb-8 to mb-7 */}
-                <h2 className="text-xs font-medium uppercase tracking-wider mb-3"> {/* Reduced mb-4 to mb-3 */}
-                  SELECT SIZE
-                </h2>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-2"> {/* Reduced gap */}
-                  {sizes.map((sizeInfo) => (
-                    <button
-                      key={sizeInfo.size}
-                      onClick={() => handleSizeSelection(sizeInfo.size)}
-                      disabled={!sizeInfo.available}
-                      className={`relative px-4 py-2 text-center text-sm border font-medium transition-all duration-200 ease-in-out ${ /* Reduced py-3 to py-2, border-2 to border, removed rounded-md */
-                        selectedSize === sizeInfo.size
-                          ? 'border-charcoal-900 bg-charcoal-900 text-ivory-50'
-                          : sizeInfo.available
-                          ? 'border-gray-300 text-charcoal-900 hover:border-charcoal-900' // Removed hover:bg-gray-100
-                          : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-70'
-                      }`}
-                      aria-label={`${sizeInfo.size} ${
-                        !sizeInfo.available ? '(out of stock)' : sizeInfo.stock < 5 ? `(only ${sizeInfo.stock} left)` : ''
-                      }`}
-                    >
-                      {sizeInfo.size}
-                      {sizeInfo.available && sizeInfo.stock < 5 && sizeInfo.stock > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center"> {/* Slightly reduced size */}
-                          {sizeInfo.stock}
-                        </span>
-                      )}
-                      {!sizeInfo.available && (
-                        <span className="absolute inset-0 flex items-center justify-center text-red-500 opacity-80">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"> {/* Slightly reduced size */}
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                          </svg>
-                        </span>
-                      )}
-                    </button>
-                  ))}
+            <div className="mb-7">
+              <h2 className="text-xs font-medium uppercase tracking-wider mb-3">
+                SELECT SIZE
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-2">
+                {sizes.map((sizeInfo) => (
+                  <button
+                    key={sizeInfo.size}
+                    onClick={() => handleSizeSelection(sizeInfo.size)}
+                    disabled={!sizeInfo.available && sizeInfo.size !== 'Custom Size'} // Enable custom size regardless of availability
+                    className={`relative px-4 py-2 text-center text-sm border font-medium transition-all duration-200 ease-in-out ${
+                      selectedSize === sizeInfo.size
+                        ? 'border-charcoal-900 bg-charcoal-900 text-ivory-50'
+                        : sizeInfo.available || sizeInfo.size === 'Custom Size' // Allow custom size selection
+                        ? 'border-gray-300 text-charcoal-900 hover:border-charcoal-900'
+                        : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-70'
+                    }`}
+                    aria-label={`${sizeInfo.size} ${
+                      !sizeInfo.available ? '(out of stock)' : sizeInfo.stock < 5 ? `(only ${sizeInfo.stock} left)` : ''
+                    }`}
+                  >
+                    {sizeInfo.size}
+                    {sizeInfo.available && sizeInfo.stock < 5 && sizeInfo.stock > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                        {sizeInfo.stock}
+                      </span>
+                    )}
+                    {!sizeInfo.available && sizeInfo.size !== 'Custom Size' && (
+                      <span className="absolute inset-0 flex items-center justify-center text-red-500 opacity-80">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                ))}
+                {/* Custom Size Button */}
+                <button
+                  onClick={() => handleSizeSelection('Custom Size')}
+                  className={`relative px-4 py-2 text-center text-sm border font-medium transition-all duration-200 ease-in-out ${
+                    isCustomSizeSelected
+                      ? 'border-charcoal-900 bg-charcoal-900 text-ivory-50'
+                      : 'border-gray-300 text-charcoal-900 hover:border-charcoal-900'
+                  }`}
+                  aria-label="Select custom size"
+                >
+                  Custom Size
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Measurement Inputs (conditionally rendered) */}
+            {isCustomSizeSelected && (
+              <div className="mb-7 p-4 border border-gray-200 bg-gray-50">
+                <h3 className="text-sm font-medium uppercase tracking-wider mb-4">
+                  Enter Your Measurements (inches/cm)
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="chest" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Chest
+                    </label>
+                    <input
+                      type="text"
+                      id="chest"
+                      name="chest"
+                      value={customMeasurements.chest}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 38"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="waist" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Waist
+                    </label>
+                    <input
+                      type="text"
+                      id="waist"
+                      name="waist"
+                      value={customMeasurements.waist}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 32"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="hips" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Hips
+                    </label>
+                    <input
+                      type="text"
+                      id="hips"
+                      name="hips"
+                      value={customMeasurements.hips}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 40"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="sleeveLength" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Sleeve Length
+                    </label>
+                    <input
+                      type="text"
+                      id="sleeveLength"
+                      name="sleeveLength"
+                      value={customMeasurements.sleeveLength}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 25"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="inseam" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Inseam
+                    </label>
+                    <input
+                      type="text"
+                      id="inseam"
+                      name="inseam"
+                      value={customMeasurements.inseam}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 30"
+                      required
+                    />
+                  </div>
+                  {/* Add more measurement inputs as needed */}
                 </div>
               </div>
             )}
 
             {/* Quantity */}
-            <div className="mb-7"> {/* Adjusted mb-8 to mb-7 */}
-              <h3 className="text-xs font-medium uppercase tracking-wider mb-3"> {/* Reduced mb-4 to mb-3 */}
+            <div className="mb-7">
+              <h3 className="text-xs font-medium uppercase tracking-wider mb-3">
                 QUANTITY
               </h3>
-              <div className="flex border border-gray-300 w-fit overflow-hidden"> {/* Removed rounded-md */}
+              <div className="flex border border-gray-300 w-fit overflow-hidden">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="px-4 py-2 bg-ivory-50 hover:bg-gray-100 transition-colors flex items-center justify-center"
@@ -283,14 +437,14 @@ export default function ProductDetails() {
                 </div>
                 <button
                   onClick={() => setQuantity((q) => q + 1)}
-                  disabled={selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity}
+                  disabled={!isCustomSizeSelected && selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity}
                   className="px-4 py-2 bg-ivory-50 hover:bg-gray-100 transition-colors disabled:opacity-50 flex items-center justify-center"
                   aria-label="Increase quantity"
                 >
                   <FiPlus className="w-4 h-4" />
                 </button>
               </div>
-              {selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity && (
+              {!isCustomSizeSelected && selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity && (
                 <p className="text-xs text-red-500 mt-2">
                   Only {sizes.find((s) => s.size === selectedSize)?.stock} available.
                 </p>
@@ -298,18 +452,18 @@ export default function ProductDetails() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col gap-3 mb-8"> {/* Reduced gap to gap-3 */}
+            <div className="flex flex-col gap-3 mb-8">
               <button
                 onClick={handleAddToCart}
-                disabled={!selectedSize || sizes.find((s) => s.size === selectedSize)?.stock < quantity}
-                className="bg-charcoal-900 text-ivory-50 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" // Removed rounded-md, reduced py-4 to py-3
+                disabled={!selectedSize || (!isCustomSizeSelected && sizes.find((s) => s.size === selectedSize)?.stock < quantity) || (isCustomSizeSelected && Object.values(customMeasurements).some(m => m.trim() === ''))}
+                className="bg-charcoal-900 text-ivory-50 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add to Cart
               </button>
               <button
                 onClick={handleBuyNow}
-                disabled={!selectedSize || sizes.find((s) => s.size === selectedSize)?.stock < quantity}
-                className="border border-charcoal-900 text-charcoal-900 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-900 hover:text-ivory-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" // Removed rounded-md, reduced py-4 to py-3
+                disabled={!selectedSize || (!isCustomSizeSelected && sizes.find((s) => s.size === selectedSize)?.stock < quantity) || (isCustomSizeSelected && Object.values(customMeasurements).some(m => m.trim() === ''))}
+                className="border border-charcoal-900 text-charcoal-900 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-900 hover:text-ivory-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Buy Now
               </button>
@@ -331,8 +485,8 @@ export default function ProductDetails() {
 
         {/* Recommended Products */}
         {recommendedProducts.length > 0 && (
-          <div className="mt-24"> {/* Maintained mt-28 to mt-24 for slight reduction but still good separation */}
-            <h2 className="text-3xl font-serif font-light tracking-tight mb-8 text-center"> {/* Reduced mb-10 to mb-8 */}
+          <div className="mt-24">
+            <h2 className="text-3xl font-serif font-light tracking-tight mb-8 text-center">
               COMPLETE YOUR ENSEMBLE
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">

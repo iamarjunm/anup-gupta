@@ -160,19 +160,41 @@ export async function createCheckout(lineItems, email, shippingAddress) {
 /**
  * Create an order in Shopify (Admin API)
  * @param {Object} orderData - Order data
+ * @param {string} orderData.email - Customer email
+ * @param {Array<Object>} orderData.lineItems - Array of line items
+ * @param {string} orderData.lineItems[].variantId - Shopify Product Variant GID
+ * @param {number} orderData.lineItems[].quantity - Quantity of the variant
+ * @param {number} [orderData.lineItems[].price] - Price of the item (optional, Shopify pulls from variant)
+ * @param {Object} [orderData.lineItems[].properties] - Custom properties for the line item (e.g., custom measurements)
+ * @param {Object} orderData.shippingAddress - Shipping address details
+ * @param {Array<Object>} [orderData.shippingLines] - Array of selected shipping lines
+ * @param {string} orderData.paymentStatus - 'paid' or 'pending'
+ * @param {string} [orderData.note] - Optional note for the order
+ * @param {string} [orderData.tags] - Optional tags for the order
  * @returns {Promise<Object>} - Created order
  */
-// In your existing shopify.js
 export async function createShopifyOrder(orderData) {
   const endpoint = '/orders.json';
-  
+
+  const extractNumericId = (gid) => {
+    if (!gid) return null;
+    const parts = gid.split('/');
+    return parts[parts.length - 1];
+  };
+
   const orderPayload = {
     order: {
       email: orderData.email,
       line_items: orderData.lineItems.map(item => ({
         variant_id: extractNumericId(item.variantId),
         quantity: item.quantity,
-        ...(item.price && { price: item.price })
+        ...(item.price && { price: item.price }),
+        ...(item.properties && {
+          properties: Object.keys(item.properties).map(key => ({
+            name: key,
+            value: item.properties[key]
+          }))
+        })
       })),
       shipping_address: {
         first_name: orderData.shippingAddress.firstName,
@@ -184,31 +206,57 @@ export async function createShopifyOrder(orderData) {
         country: orderData.shippingAddress.country,
         zip: orderData.shippingAddress.zip,
         phone: orderData.shippingAddress.phone,
-        ...(orderData.shippingAddress.countryCode && { 
-          country_code: orderData.shippingAddress.countryCode 
+        ...(orderData.shippingAddress.countryCode && {
+          country_code: orderData.shippingAddress.countryCode
         })
       },
-      shipping_lines: orderData.shippingLines.map(shippingOption => ({
+      shipping_lines: orderData.shippingLines?.map(shippingOption => ({
         title: shippingOption.title,
-        price: shippingOption.price,  // Ensure this is the correct shipping price
+        price: shippingOption.price,
         code: shippingOption.code || 'standard',
         ...(shippingOption.carrierId && { carrier_identifier: shippingOption.carrierId })
-      })),
-      financial_status: 'paid',  // Payment status is always 'paid'
+      })) || [],
+      financial_status: orderData.paymentStatus,
       note: orderData.note,
       tags: orderData.tags
     }
   };
+
+  if (orderData.paymentStatus === 'paid' && orderData.razorpayPaymentId) {
+    orderPayload.order.transactions = [
+      {
+        kind: "sale",
+        status: "success",
+        amount: orderData.totalAmount,
+        gateway: "razorpay",
+        receipt: orderData.razorpayPaymentId,
+      },
+    ];
+    orderPayload.order.note = `${orderPayload.order.note || ''}\nRazorpay Payment ID: ${orderData.razorpayPaymentId}`;
+    orderPayload.order.tags = `${orderPayload.order.tags || ''},prepaid-razorpay`;
+  } else if (orderData.paymentStatus === 'pending') {
+    orderPayload.order.note = `${orderPayload.order.note || ''}\nCash on Delivery`;
+    orderPayload.order.tags = `${orderPayload.order.tags || ''},cash-on-delivery`;
+  }
+
+  // --- ADD THIS LOGGING ---
+  console.log("Shopify Order Payload being sent:", JSON.stringify(orderPayload, null, 2));
+  // -------------------------
 
   try {
     const response = await shopifyRequest(endpoint, 'POST', orderPayload, true);
     return response.order;
   } catch (error) {
     console.error('Failed to create order:', error);
-    throw error;
+    throw new Error(`Shopify API Error: ${error.message || JSON.stringify(error.response?.data || error)}`);
   }
 }
 
+
+// In your existing shopify.js
+
+// Assuming shopifyRequest function is defined elsewhere and handles API authentication/requests
+// import { shopifyRequest } from "./utils/shopify-api-client"; // Example
 
 function extractNumericId(gid) {
   if (!gid) throw new Error("Variant ID is required");
