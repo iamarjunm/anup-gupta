@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { FiShare2, FiPlus, FiMinus } from 'react-icons/fi';
 import Image from 'next/image';
+import {FindYourFitModal} from '@/components/FindYourFitModal'; // Import the new component
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -14,14 +15,16 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [isCustomSizeSelected, setIsCustomSizeSelected] = useState(false); // New state for custom size
-  const [customMeasurements, setCustomMeasurements] = useState({ // New state for measurements
+  const [isCustomSizeSelected, setIsCustomSizeSelected] = useState(false);
+  const [customMeasurements, setCustomMeasurements] = useState({
     chest: '',
     waist: '',
     hips: '',
     sleeveLength: '',
-    inseam: '',
-    // Add any other relevant measurements for formal wear
+    neck: '',
+    stomach: '',
+    shoulder: '',
+    shirtLength: '',
   });
   const [quantity, setQuantity] = useState(1);
   const [sizes, setSizes] = useState([]);
@@ -29,6 +32,7 @@ export default function ProductDetails() {
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isFindYourFitModalOpen, setIsFindYourFitModalOpen] = useState(false); // New state for modal
 
   const { addToCart } = useCart();
 
@@ -81,7 +85,6 @@ export default function ProductDetails() {
   };
 
   const handleSizeSelection = (size) => {
-    // If "Custom Size" is selected, clear custom measurements and set the flag
     if (size === 'Custom Size') {
       setIsCustomSizeSelected(true);
       setSelectedSize('Custom Size');
@@ -90,10 +93,12 @@ export default function ProductDetails() {
         waist: '',
         hips: '',
         sleeveLength: '',
-        inseam: '',
+        neck: '',
+        stomach: '',
+        shoulder: '',
+        shirtLength: '',
       });
     } else {
-      // For standard sizes
       if (sizes.find((s) => s.size === size)?.available) {
         setIsCustomSizeSelected(false);
         setSelectedSize(size);
@@ -125,18 +130,13 @@ export default function ProductDetails() {
     };
 
     if (isCustomSizeSelected) {
-      // For custom size, we don't have a specific Shopify variant ID.
-      // We'll store measurements as a property of the line item.
-      // You might need a "dummy" variant in Shopify for "Custom Size" if you want to track it that way.
       itemToAdd = {
         ...itemToAdd,
         size: 'Custom Size',
-        customMeasurements: customMeasurements, // Add custom measurements
-        variantId: product.variants[0]?.id, // Use a default variant ID if needed by your cart
-        // Consider having a specific variant in Shopify called "Custom Size" if you need to track it
+        customMeasurements: customMeasurements,
+        variantId: product.variants[0]?.id,
       };
 
-      // Basic validation for custom measurements
       const allMeasurementsFilled = Object.values(customMeasurements).every(
         (measurement) => measurement.trim() !== ''
       );
@@ -146,7 +146,6 @@ export default function ProductDetails() {
       }
 
     } else {
-      // For standard sizes
       const selectedVariant = product.variants.find(
         (variant) => variant.title === selectedSize || variant.size === selectedSize
       );
@@ -173,6 +172,13 @@ export default function ProductDetails() {
     }
     handleAddToCart();
     router.push('/checkout');
+  };
+
+  // Callback function to receive recommended size from modal
+  const handleRecommendedSizeSelection = (size) => {
+    setSelectedSize(size);
+    setIsCustomSizeSelected(false); // Ensure custom size is deselected if a standard size is recommended
+    triggerToast(`Recommended size ${size} selected!`);
   };
 
   if (isLoading) {
@@ -290,11 +296,11 @@ export default function ProductDetails() {
                   <button
                     key={sizeInfo.size}
                     onClick={() => handleSizeSelection(sizeInfo.size)}
-                    disabled={!sizeInfo.available && sizeInfo.size !== 'Custom Size'} // Enable custom size regardless of availability
+                    disabled={!sizeInfo.available && sizeInfo.size !== 'Custom Size'}
                     className={`relative px-4 py-2 text-center text-sm border font-medium transition-all duration-200 ease-in-out ${
                       selectedSize === sizeInfo.size
                         ? 'border-charcoal-900 bg-charcoal-900 text-ivory-50'
-                        : sizeInfo.available || sizeInfo.size === 'Custom Size' // Allow custom size selection
+                        : sizeInfo.available || sizeInfo.size === 'Custom Size'
                         ? 'border-gray-300 text-charcoal-900 hover:border-charcoal-900'
                         : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-70'
                     }`}
@@ -317,7 +323,6 @@ export default function ProductDetails() {
                     )}
                   </button>
                 ))}
-                {/* Custom Size Button */}
                 <button
                   onClick={() => handleSizeSelection('Custom Size')}
                   className={`relative px-4 py-2 text-center text-sm border font-medium transition-all duration-200 ease-in-out ${
@@ -330,6 +335,13 @@ export default function ProductDetails() {
                   Custom Size
                 </button>
               </div>
+              {/* Find Your Fit Button */}
+              <button
+                onClick={() => setIsFindYourFitModalOpen(true)}
+                className="mt-4 w-full py-2 border border-charcoal-900 text-charcoal-900 rounded-sm uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-900 hover:text-ivory-50 transition-all duration-300"
+              >
+                Find Your Perfect Fit
+              </button>
             </div>
 
             {/* Custom Measurement Inputs (conditionally rendered) */}
@@ -400,21 +412,65 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="inseam" className="block text-xs font-medium text-charcoal-700 mb-1">
-                      Inseam
+                    <label htmlFor="neck" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Neck
                     </label>
                     <input
                       type="text"
-                      id="inseam"
-                      name="inseam"
-                      value={customMeasurements.inseam}
+                      id="neck"
+                      name="neck"
+                      value={customMeasurements.neck}
                       onChange={handleMeasurementChange}
                       className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
                       placeholder="e.g., 30"
                       required
                     />
                   </div>
-                  {/* Add more measurement inputs as needed */}
+                  <div>
+                    <label htmlFor="stomach" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Stomach
+                    </label>
+                    <input
+                      type="text"
+                      id="stomach"
+                      name="stomach"
+                      value={customMeasurements.stomach}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 30"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="shoulder" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Shoulder
+                    </label>
+                    <input
+                      type="text"
+                      id="shoulder"
+                      name="shoulder"
+                      value={customMeasurements.shoulder}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 30"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="shirtLength" className="block text-xs font-medium text-charcoal-700 mb-1">
+                      Shirt Length
+                    </label>
+                    <input
+                      type="text"
+                      id="shirtLength"
+                      name="shirtLength"
+                      value={customMeasurements.shirtLength}
+                      onChange={handleMeasurementChange}
+                      className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-charcoal-900"
+                      placeholder="e.g., 30"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -497,6 +553,13 @@ export default function ProductDetails() {
           </div>
         )}
       </div>
+
+      {/* Find Your Fit Modal */}
+      <FindYourFitModal
+        isOpen={isFindYourFitModalOpen}
+        onClose={() => setIsFindYourFitModalOpen(false)}
+        onRecommend={handleRecommendedSizeSelection} // Changed to onRecommend for consistency with desired prop name
+      />
     </div>
   );
 }

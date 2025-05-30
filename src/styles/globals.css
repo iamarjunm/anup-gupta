@@ -1,6 +1,23 @@
-@import "tailwindcss";
+/* src/styles/globals.css */
+
+@import "tailwindcss"; /* Keep this as it's the only one that works for you */
 @import 'animate.css';
 
+/* --- */
+
+/* Define your custom colors as CSS variables */
+:root {
+  --color-ivory-50: #f7f3ee;
+  --color-charcoal-900: #1e3d2f;
+  --color-charcoal-700: #3a3a3a; /* Add all charcoal shades you use */
+  --color-charcoal-600: #5a5a5a;
+  --color-charcoal-500: #7a7a7a;
+  --color-gray-300: #d1d5db; /* If you're using gray-300 and it's not a default Tailwind one */
+}
+
+/* --- */
+
+/* Your custom animations */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -18,12 +35,69 @@
   animation-delay: 1s;
 }
 
-
-/* globals.css */
-body {
-  color: black; /* Black text color for the body */
-  background-color: white; /* White background color */
-  font-family: 'Arial', sans-serif; /* You can adjust the font family as needed */
-  line-height: 1.6;
+@keyframes spin-grow {
+  0% { transform: scale(0.8) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
 }
 
+@keyframes pulse-chaos {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(1.5); }
+}
+
+@keyframes wiggle-waggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes neon-glow {
+  0%, 100% { text-shadow: 0 0 5px #FF00FF, 0 0 10px #00FFFF; }
+  50% { text-shadow: 0 0 10px #FF00FF, 0 0 20px #00FFFF, 0 0 30px #FF00FF; }
+}
+
+@keyframes shake-rumble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-1deg); }
+  75% { transform: translateX(5px) rotate(1deg); }
+}
+
+@keyframes confetti-pop {
+  0% { opacity: 0; transform: translateY(100%) scale(0); }
+  100% { opacity: 1; transform: translateY(0%) scale(1); }
+}
+
+.animate-spin-grow {
+  animation: spin-grow 1.5s ease-in-out infinite alternate;
+}
+
+.animate-pulse-chaos {
+  animation: pulse-chaos 2s infinite alternate;
+}
+
+.animate-wiggle-waggle {
+  animation: wiggle-waggle 0.5s infinite alternate;
+}
+
+.animate-neon-glow {
+  animation: neon-glow 1.5s infinite alternate;
+}
+
+.animate-shake-rumble {
+  animation: shake-rumble 0.2s infinite;
+}
+
+.animate-confetti-pop {
+  animation: confetti-pop 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+/* --- */
+
+/* globals.css body styles - these will be overridden by component-level styles if they use Tailwind */
+body {
+  /* Using the CSS variables here makes sure the body's default colors are also consistent */
+  color: var(--color-charcoal-900);
+  background-color: var(--color-ivory-50);
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+}
