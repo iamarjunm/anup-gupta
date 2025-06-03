@@ -45,9 +45,9 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">OUR ATELIER</h4>
-                <p className="text-gray-300">II-A-1, Motilal Nehru Marg, Pocket B</p>
-                <p className="text-gray-300">Nehru Nagar II, Ghaziabad</p>
-                <p className="text-gray-300">Uttar Pradesh, India</p>
+                <p className="text-gray-300">36 Cattrick street</p>
+                <p className="text-gray-300">Mississauga </p>
+                <p className="text-gray-300">L4T1H5</p>
               </div>
             </div>
             
@@ -59,7 +59,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">EMAIL US</h4>
-                <p className="text-gray-300">anupguptacouture22@gmail.com</p>
+                <p className="text-gray-300">info@anupguptastudio.com</p>
               </div>
             </div>
             
@@ -71,7 +71,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">CALL US</h4>
-                <p className="text-gray-300">9625981155</p>
+                <p className="text-gray-300">647-926-9903</p>
                 <p className="text-gray-300">Mon-Fri: 9AM - 6PM IST</p>
               </div>
             </div>

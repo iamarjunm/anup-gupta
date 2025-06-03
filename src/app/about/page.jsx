@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function AboutPage() {
   const fadeIn = {
@@ -130,13 +131,17 @@ export default function AboutPage() {
               Our commitment to quality extends to every thread. We meticulously source the finest fabrics and employ traditional techniques alongside contemporary tailoring methods to ensure durability, comfort, and an impeccable finish. Every piece from Anup Gupta is designed to be cherished, an heirloom in the making.
             </p>
             <div className="pt-6 md:pt-8">
-              <motion.button
-                whileHover={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#ffffff' }}
-                whileTap={{ scale: 0.98 }}
-                className="px-6 py-3 md:px-8 md:py-4 border border-white text-white text-sm tracking-widest uppercase transition-colors duration-300"
+              {/* REMOVE legacyBehavior and the inner <a> tag, apply props directly to Link */}
+              <Link
+                href="/shop"
+                className="inline-block px-6 py-3 md:px-8 md:py-4 border border-white text-white text-sm tracking-widest uppercase transition-colors duration-300"
+                // You can add motion props directly here
+                // Note: motion.custom is an alternative if you need to pass a ref and custom element
+                // For simple animations, applying them directly to Link might work
+                // If you encounter issues, wrap Link inside motion.div or motion.span
               >
                 EXPLORE OUR COLLECTIONS
-              </motion.button>
+              </Link>
             </div>
           </motion.div>
           {/* Image 3: Anup Gupta (e.g., close-up, or interacting with a hand-painted shirt) */}

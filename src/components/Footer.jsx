@@ -49,10 +49,10 @@ export default function LuxuryFooter() {
             <h3 className="text-xl font-serif mb-6 tracking-wider">CONTACT</h3>
             <address className="not-italic space-y-4">
               <p className="text-white/70 hover:text-white transition-colors">
-                9625981155
+                647-926-9903
               </p>
               <p className="text-white/70 hover:text-white transition-colors">
-                anupguptacouture22@gmail.com
+                info@anupguptastudio.com
               </p>
             </address>
             
