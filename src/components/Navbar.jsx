@@ -209,7 +209,7 @@ export default function Navbar() {
               className={`text-sm font-medium uppercase tracking-wider ${textColor} hover:opacity-80 transition-opacity`}
               whileHover={{ scale: 1.03 }}
             >
-              Heritage
+              About
             </motion.a>
             <motion.a
               href="/contact"
