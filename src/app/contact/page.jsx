@@ -93,7 +93,7 @@ export default function ContactPage() {
               Please direct all inquiries to our email addresses listed.
             </p>
             <div className="space-y-2">
-              <p className="text-gray-300">General inquiries & Appointments: <span className="text-white">anupguptacouture22@gmail.com</span></p>
+              <p className="text-gray-300">General inquiries & Appointments: <span className="text-white">Anupguptaclothingstudio@gmail.com</span></p>
             </div>
           </div>
         </motion.div>
