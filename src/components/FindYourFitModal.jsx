@@ -11,6 +11,17 @@ const AI_SIZE_LOGIC = {
   materialStretch: ['RIGID', 'MODERATE', 'STRETCH'],
 };
 
+// Size chart based on the provided photo
+const sizeChart = {
+  XS: { sizeNumber: 38, chest: 39, waist: 39, shoulder: 17, fullLength: 24, sleeve: 7.5, shirtLength: 27 },
+  S: { sizeNumber: 39, chest: 41, waist: 41, shoulder: 17.5, fullLength: 25, sleeve: 7.5, shirtLength: 28 },
+  M: { sizeNumber: 40, chest: 44, waist: 44, shoulder: 18.5, fullLength: 25.5, sleeve: 8, shirtLength: 29.5 },
+  L: { sizeNumber: 42, chest: 47, waist: 47, shoulder: 19.5, fullLength: 26, sleeve: 9, shirtLength: 30.5 },
+  XL: { sizeNumber: 44, chest: 51, waist: 51, shoulder: 20.5, fullLength: 27, sleeve: 9.5, shirtLength: 31.5 },
+  "2XL": { sizeNumber: 46, chest: 55, waist: 55, shoulder: 21.5, fullLength: 27.25, sleeve: 10, shirtLength: 32 },
+  "3XL": { sizeNumber: 48, chest: 58, waist: 58, shoulder: 21.5, fullLength: 27.5, sleeve: 10.5, shirtLength: 32 }
+};
+
 // Mock AI Logic for Male Formalwear
 const getBaseSize = (height, weight, lowerBody) => {
   if (!height || !weight) return 'REGULAR';
@@ -39,9 +50,9 @@ const getStretchPreference = (fitPreference) => {
 
 const getTailoringNotes = (bodyShape) => {
   const notes = {
-    'SLIM': 'Consider slim-fit cuts for a modern silhouette.',
-    'REGULAR': 'Classic fits will provide the most versatile look.',
-    'WIDE': 'Look for structured shoulders and tapered legs to balance proportions.'
+    'SLIM': 'Consider slim-fit cuts for a modern silhouette. XS-S sizes will work best for your frame.',
+    'REGULAR': 'Classic fits will provide the most versatile look. M-L sizes typically fit your body type well.',
+    'WIDE': 'Look for structured shoulders and tapered legs to balance proportions. XL-2XL sizes with structured cuts are recommended.'
   };
   return notes[bodyShape] || 'Standard fit recommendations apply.';
 };
@@ -49,7 +60,7 @@ const getTailoringNotes = (bodyShape) => {
 const calculateFinalSize = (sizeProfile) => {
   const { baseSize, fitProfile, stretchFactor } = sizeProfile;
   
-  // Size matrix for male formalwear
+  // Updated size matrix based on the provided size chart
   const sizeMatrix = {
     SLIM: {
       'very tight': stretchFactor === 'STRETCH' ? 'XS' : 'S',
@@ -67,9 +78,9 @@ const calculateFinalSize = (sizeProfile) => {
       'very loose': 'XL'
     },
     BIG: {
-      'very tight': stretchFactor === 'STRETCH' ? 'XL' : 'XXL',
-      'regular': 'XL',
-      'very loose': 'XXL'
+      'very tight': stretchFactor === 'STRETCH' ? 'XL' : '2XL',
+      'regular': '2XL',
+      'very loose': '3XL'
     }
   };
   
@@ -78,7 +89,7 @@ const calculateFinalSize = (sizeProfile) => {
 
 const suggestAlternates = (sizeProfile) => {
   const mainSize = calculateFinalSize(sizeProfile);
-  const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+  const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
   const mainIndex = sizeOrder.indexOf(mainSize);
   
   if (mainIndex === -1) return ['S', 'M'];
@@ -94,29 +105,36 @@ const generateStylingTips = (bodyShape, fitPreference) => {
   
   // Body shape tips
   if (bodyShape === 'SLIM') {
+    tips.push('The XS-S sizes in our collection will provide the best fit for your slim frame.');
     tips.push('Slim-cut suits with narrow lapels will complement your frame.');
   }
   if (bodyShape === 'REGULAR') {
+    tips.push('Our M-L sizes offer the perfect balance of comfort and structure for your build.');
     tips.push('Classic fit suits with medium-width lapels offer timeless elegance.');
   }
   if (bodyShape === 'WIDE') {
+    tips.push('Look for XL-2XL sizes with structured shoulders for optimal fit.');
     tips.push('Structured shoulders with a slightly tapered leg create balance.');
   }
   
   // Fit preference tips
   if (fitPreference === 'very tight') {
+    tips.push('Consider sizing down for a more fitted look, especially with stretch fabrics.');
     tips.push('Look for "super slim" or "extra fitted" cuts in our collection.');
   }
   if (fitPreference === 'regular') {
+    tips.push('Our standard sizes provide a classic fit that works for most occasions.');
     tips.push('Our "modern fit" line offers the perfect balance of comfort and style.');
   }
   if (fitPreference === 'very loose') {
+    tips.push('You may want to size up for a more relaxed fit, especially in rigid fabrics.');
     tips.push('Consider our "relaxed fit" collection for maximum comfort.');
   }
   
-  return tips.length > 0 ? tips : ['A well-fitted suit can elevate your confidence and appearance.'];
+  return tips.length > 0 ? tips : ['Refer to our detailed size chart for precise measurements.'];
 };
 
+// Questions array remains exactly the same as in the original code
 const questions = [
   {
     id: 'biometrics',
@@ -333,8 +351,7 @@ export const FindYourFitModal = ({
       setIsCalculating(false);
       setValidationErrors({});
     }
-    // Only run when isOpen changes, not other dependencies
-  }, [isOpen, showResults]); // Removed other dependencies that could cause loops
+  }, [isOpen, showResults]);
 
   // Validate current step
   const validateCurrentStep = useCallback(() => {
@@ -370,7 +387,6 @@ export const FindYourFitModal = ({
     setAnswers(prev => {
       const newAnswers = { ...prev, [questionId]: value };
       
-      // Clear validation errors when answering
       if (validationErrors[questionId]) {
         setValidationErrors(prev => {
           const newErrors = { ...prev };
@@ -450,7 +466,7 @@ export const FindYourFitModal = ({
     }
   }, [answers]);
 
-  // Animations (unchanged)
+  // Animations
   const modalVariants = {
     hidden: { opacity: 0, y: 50, rotate: -2 },
     visible: {
@@ -659,15 +675,6 @@ export const FindYourFitModal = ({
                             )}
                           </motion.div>
                         ))}
-
-                        {currentQuestion.id === 'biometrics' && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                          >
-                          </motion.div>
-                        )}
                       </div>
                     )}
 
@@ -808,6 +815,9 @@ export const FindYourFitModal = ({
                       <div className="bg-white p-12 rounded-2xl border border-gray-200 shadow-xl">
                         <div className="text-8xl font-black text-gray-800">
                           {recommendation.size}
+                        </div>
+                        <div className="text-lg text-gray-600 mt-2">
+                          (Size {sizeChart[recommendation.size]?.sizeNumber || ''})
                         </div>
                       </div>
                     </div>

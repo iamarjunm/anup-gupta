@@ -43,7 +43,7 @@ const heroSlides = [
     link: "/shop?category=bandhgala"
   },
   {
-    image: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80',
+    image: '/nehru-jacket-1.jpg',
     title: "NEHRU JACKETS",
     subtitle: "Contemporary elegance with tradition",
     cta: "Browse Jackets",

@@ -54,7 +54,7 @@ const collections = [
     id: 6,
     title: "NEHRU JACKETS",
     subtitle: "Contemporary elegance with tradition",
-    image: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80",
+    image: "/nehru-jacket-2.jpg",
     cta: "View Jackets",
     link: "/shop?category=nehru-jacket", // Added link
     items: ["Classic Black", "Jacquard", "Evening", "Silk"]
