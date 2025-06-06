@@ -195,7 +195,7 @@ const PaymentButton = ({
             PROCESSING ORDER
           </span>
         ) : (
-          `PLACE ORDER (₹${total.toFixed(2)})` // Display total on button
+          `PLACE ORDER` // Display total on button
         )}
       </button>
 
