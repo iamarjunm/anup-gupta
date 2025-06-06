@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { FiX, FiArrowRight, FiArrowLeft, FiCheck, FiSliders as FiRuler, FiUser, FiTrendingUp, FiHeart, FiInfo } from 'react-icons/fi';
+import Image from 'next/image';
 
 // Constants
 const AI_SIZE_LOGIC = {
@@ -165,7 +166,7 @@ const questions = [
     ],
     visual: {
       type: 'illustration',
-      asset: '/images/male-measurement-guide.svg',
+      asset: '/size.jpg',
       alt: 'Male Measurement Guide'
     }
   },
@@ -199,7 +200,7 @@ const questions = [
     ],
     visual: {
       type: 'illustration',
-      asset: '/images/lower-body-proportions.svg',
+      asset: '/lower.png',
       alt: 'Lower Body Proportions'
     }
   },
@@ -233,7 +234,7 @@ const questions = [
     ],
     visual: {
       type: 'illustration',
-      asset: '/images/male-body-shapes.svg',
+      asset: '/body.png',
       alt: 'Male Body Shapes'
     }
   },
@@ -267,7 +268,7 @@ const questions = [
     ],
     visual: {
       type: 'illustration',
-      asset: '/images/sizing-experience.svg',
+      asset: '/man.png',
       alt: 'Sizing Experience'
     }
   },
@@ -301,7 +302,7 @@ const questions = [
     ],
     visual: {
       type: 'illustration',
-      asset: '/images/fit-preference.svg',
+      asset: '/fit.png',
       alt: 'Fit Preference Guide'
     }
   }
@@ -602,18 +603,16 @@ export const FindYourFitModal = ({
                 >
                   {/* Visual Panel */}
                   <div className="relative rounded-xl overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center min-h-[300px]">
-                    {currentQuestion.visual.type === 'illustration' && (
-                      <div className="p-8 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                            <span className="text-gray-400">Illustration: {currentQuestion.visual.alt}</span>
-                          </div>
-                          <p className="text-sm text-gray-500">{currentQuestion.visual.alt}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+  {currentQuestion.visual.type === 'illustration' && (
+    <Image
+      src={currentQuestion.visual.asset}
+      alt={currentQuestion.visual.alt}
+      width={400}
+      height={300}
+      className="object-contain"
+    />
+  )}
+</div>
                   {/* Form Panel */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">

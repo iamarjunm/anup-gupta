@@ -5,6 +5,7 @@ import LuxuryFooter from "@/components/Footer"
 import "../styles/globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { UserProvider } from "@/context/UserContext";
+import { CurrencyProvider } from '@/context/CurrencyContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +21,7 @@ export const metadata = {
   title: "Anup Gupta Studio",
   description: "Formals",
 };
+const appBaseCurrency = 'INR';
 
 export default function RootLayout({ children }) {
   return (
@@ -32,6 +34,7 @@ export default function RootLayout({ children }) {
         `}
       >
         <UserProvider>
+           <CurrencyProvider baseCurrency={appBaseCurrency}>
             <CartProvider>
         {/* Global Navbar */}
         <Navbar />
@@ -44,6 +47,7 @@ export default function RootLayout({ children }) {
 
         <LuxuryFooter />
         </CartProvider>
+        </CurrencyProvider>
         </UserProvider>
       </body>
       

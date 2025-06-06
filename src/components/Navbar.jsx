@@ -8,6 +8,9 @@ import { useCart } from "@/context/CartContext"
 import { useRouter } from "next/navigation"
 import { usePathname } from 'next/navigation'
 
+// Import the CurrencySwitcher component
+import CurrencySwitcher from '@/components/CurrencySwitcher' // Adjust the path as per your project structure
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -245,8 +248,11 @@ export default function Navbar() {
             </a>
           </motion.div>
 
-          {/* Right - Icons */}
+          {/* Right - Icons and Currency Switcher */}
           <div className="flex items-center gap-8">
+            {/* Currency Switcher */}
+            <CurrencySwitcher /> {/* Here's the CurrencySwitcher imported */}
+
             {/* Account Dropdown */}
             <div
               className="relative hidden lg:block"
@@ -442,6 +448,15 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Currency Switcher in Mobile Menu */}
+              <div className="py-4 border-b border-gray-800">
+                 <div className="flex items-center justify-between w-full text-white text-lg">
+                    <span>Currency</span>
+                    <CurrencySwitcher /> {/* Placed the CurrencySwitcher here for mobile */}
+                 </div>
+              </div>
+
             </div>
 
             <div className="mt-12 flex gap-8 justify-center">

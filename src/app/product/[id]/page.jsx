@@ -7,7 +7,8 @@ import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { FiShare2, FiPlus, FiMinus } from 'react-icons/fi';
 import Image from 'next/image';
-import {FindYourFitModal} from '@/components/FindYourFitModal'; // Import the new component
+import {FindYourFitModal} from '@/components/FindYourFitModal'; 
+import formatCurrency from '@/lib/formatCurrency';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -264,20 +265,12 @@ export default function ProductDetails() {
 
             <div className="mb-7 flex items-baseline">
               <span className="text-3xl font-semibold">
-                {new Intl.NumberFormat('en-IN', {
-                  style: 'currency',
-                  currency: 'INR',
-                  minimumFractionDigits: 0,
-                }).format(parseFloat(product.price))}
+                {formatCurrency(parseFloat(product.price))}
               </span>
               {product.compareAtPrice &&
                 parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
                   <span className="text-charcoal-400 line-through ml-3 text-lg">
-                    {new Intl.NumberFormat('en-IN', {
-                      style: 'currency',
-                      currency: 'INR',
-                      minimumFractionDigits: 0,
-                    }).format(parseFloat(product.compareAtPrice))}
+                    {formatCurrency(parseFloat(product.compareAtPrice))}
                   </span>
                 )}
             </div>
@@ -558,7 +551,7 @@ export default function ProductDetails() {
       <FindYourFitModal
         isOpen={isFindYourFitModalOpen}
         onClose={() => setIsFindYourFitModalOpen(false)}
-        onRecommend={handleRecommendedSizeSelection} // Changed to onRecommend for consistency with desired prop name
+        onRecommend={handleRecommendedSizeSelection}
       />
     </div>
   );

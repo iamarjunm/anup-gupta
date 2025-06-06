@@ -13,8 +13,8 @@ const CourierSelector = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const PICKUP_POSTCODE = "201001";
-  const COUNTRY = "India";
+  const PICKUP_POSTCODE_INDIA = "201001"; // For Indian domestic shipments
+  const PICKUP_COUNTRY_INDIA = "India";
 
   useEffect(() => {
     const fetchShippingRates = async () => {
@@ -23,11 +23,14 @@ const CourierSelector = ({
         setError(null);
         setShippingRates([]); // Clear previous rates
 
-        // Validation: Must be a 6-digit Indian PIN
-        const pin = shippingAddress?.zip;
-        
-        if (!pin || !/^\d{6}$/.test(pin)) {
-          const errorMsg = "Please provide a valid 6-digit Indian PIN code.";
+        const deliveryZip = shippingAddress?.zip;
+        const deliveryCountry = shippingAddress?.country; // Assuming you get this from your address object
+        const deliveryCity = shippingAddress?.city; // May be needed for international
+        const deliveryState = shippingAddress?.state; // May be needed for international
+
+        // Basic validation for delivery address
+        if (!deliveryZip && !deliveryCountry) {
+          const errorMsg = "Please provide a valid delivery address (ZIP/Postal Code and Country) to calculate shipping.";
           console.error(errorMsg);
           setError(errorMsg);
           return;
@@ -46,12 +49,12 @@ const CourierSelector = ({
           cart.map(async (item) => {
             const variantId = item.variantId.match(/\d+$/)?.[0];
             console.log(`Fetching weight for product ${item.id}, variant ${variantId}`);
-            
+
             const weight = await fetchProductWeight(
               item.id,
               variantId
             );
-            
+
             return { ...item, weight };
           })
         );
@@ -60,7 +63,6 @@ const CourierSelector = ({
           (sum, item) => sum + item.weight * item.quantity,
           0
         );
-        
 
         if (totalWeight <= 0) {
           const errorMsg = "Cart items must have valid weight to calculate shipping.";
@@ -69,75 +71,117 @@ const CourierSelector = ({
           return;
         }
 
-        // Fetch Shiprocket shipping rates
-        const params = new URLSearchParams({
-          pickup_postcode: PICKUP_POSTCODE,
-          delivery_postcode: pin,
-          cod: 0,
-          weight: totalWeight,
-        });
+        let response;
+        let data;
 
-        console.log('Shiprocket API params:', params.toString());
-        
-        const response = await fetch(
-          `https://apiv2.shiprocket.in/v1/external/courier/serviceability?${params}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SHIPROCKET_API_TOKEN}`,
-            },
-          }
-        );
+        // --- Logic to handle Domestic vs. International Shipping ---
+        if (deliveryCountry === PICKUP_COUNTRY_INDIA) {
+          // Domestic Shipping (India)
+          console.log('Calculating domestic shipping rates...');
+          const params = new URLSearchParams({
+            pickup_postcode: PICKUP_POSTCODE_INDIA,
+            delivery_postcode: deliveryZip,
+            cod: 0,
+            weight: totalWeight,
+          });
+
+          console.log('Shiprocket Domestic API params:', params.toString());
+
+          response = await fetch(
+            `https://apiv2.shiprocket.in/v1/external/courier/serviceability?${params}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${process.env.NEXT_PUBLIC_SHIPROCKET_API_TOKEN}`,
+              },
+            }
+          );
+        } else {
+          // International Shipping
+          console.log('Calculating international shipping rates...');
+          // THIS IS WHERE YOU'LL NEED TO INTEGRATE SHIPROCKET X OR ANOTHER INTERNATIONAL API
+          // The API endpoint and parameters will be different.
+          // Example (hypothetical):
+          // response = await fetch(
+          //   `https://apiv2.shiprocket.in/v1/external/courier/international-serviceability`,
+          //   {
+          //     method: "POST", // Might be POST for international
+          //     headers: {
+          //       "Content-Type": "application/json",
+          //       Authorization: `Bearer ${process.env.NEXT_PUBLIC_SHIPROCKET_API_TOKEN_INTERNATIONAL}`, // Might need a different token
+          //     },
+          //     body: JSON.stringify({
+          //       pickup_country_code: "IN",
+          //       delivery_country_code: shippingAddress?.countryCode, // Assuming you have this
+          //       delivery_postcode: deliveryZip,
+          //       delivery_city: deliveryCity,
+          //       delivery_state: deliveryState,
+          //       weight: totalWeight,
+          //       // Add other required international parameters like item details, value, etc.
+          //     }),
+          //   }
+          // );
+
+          // For now, let's just throw an error or return an empty array if international shipping is not fully implemented.
+          setError("International shipping calculation is not yet fully implemented. Please contact support for international orders.");
+          setLoading(false);
+          return;
+        }
 
         console.log('Shiprocket API response status:', response.status);
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Shiprocket API error:', errorData);
           throw new Error(errorData.message || "Failed to fetch shipping rates.");
         }
 
-        const data = await response.json();
-        
+        data = await response.json();
+
         // Check if data has the expected structure
-        if (!data?.data?.available_courier_companies) {
-          console.error('Unexpected Shiprocket response structure:', data);
-          throw new Error("No shipping options available for this location.");
+        if (!data?.data?.available_courier_companies && deliveryCountry === PICKUP_COUNTRY_INDIA) {
+            console.error('Unexpected Shiprocket response structure (domestic):', data);
+            throw new Error("No shipping options available for this location.");
         }
+        // You'll need different checks for international responses based on Shiprocket X API docs.
 
         // Log each company's data before transformation
-        data.data.available_courier_companies.forEach(company => {
-          console.log(`Company: ${company.courier_name}`, {
-            estimated_price: company.estimated_price,
-            rate: company.rate,
-            etd: company.etd,
-            estimated_delivery_days: company.estimated_delivery_days
-          });
-        });
+        if (data?.data?.available_courier_companies) {
+            data.data.available_courier_companies.forEach(company => {
+                console.log(`Company: ${company.courier_name}`, {
+                    estimated_price: company.estimated_price,
+                    rate: company.rate,
+                    etd: company.etd,
+                    estimated_delivery_days: company.estimated_delivery_days
+                });
+            });
 
-        // Transform the response into a more usable format
-        const rates = data.data.available_courier_companies.map(company => {
-          // Check which price field is available
-          const priceValue = company.estimated_price || company.rate;
-          console.log(`Processing ${company.courier_name}:`, {
-            priceValue,
-            estimated_price: company.estimated_price,
-            rate: company.rate
-          });
-          
-          return {
-            id: company.courier_company_id.toString(),
-            title: company.courier_name,
-            price: priceValue ? `₹${priceValue}` : 'Price not available',
-            deliveryTime: company.estimated_delivery_days 
-              ? `${company.estimated_delivery_days} business days`
-              : company.etd || "3-5 business days",
-          };
-        });
+            // Transform the response into a more usable format
+            const rates = data.data.available_courier_companies.map(company => {
+                const priceValue = company.estimated_price || company.rate;
+                console.log(`Processing ${company.courier_name}:`, {
+                    priceValue,
+                    estimated_price: company.estimated_price,
+                    rate: company.rate
+                });
 
-        console.log('Formatted shipping rates:', rates);
-        setShippingRates(rates);
+                return {
+                    id: company.courier_company_id.toString(),
+                    title: company.courier_name,
+                    price: priceValue ? `₹${priceValue}` : 'Price not available',
+                    deliveryTime: company.estimated_delivery_days
+                        ? `${company.estimated_delivery_days} business days`
+                        : company.etd || "3-5 business days",
+                };
+            });
+            console.log('Formatted shipping rates:', rates);
+            setShippingRates(rates);
+        } else {
+            // Handle cases where no couriers are returned for international shipping
+            setError("No international shipping options found for this destination.");
+        }
+
       } catch (err) {
         console.error("Shipping error:", err);
         setError(err.message || "Error fetching shipping rates.");
@@ -147,14 +191,19 @@ const CourierSelector = ({
       }
     };
 
-    if (shippingAddress?.zip && cart?.length > 0) {
+    // Trigger fetch if we have enough address info and cart items
+    if (shippingAddress?.zip && shippingAddress?.country && cart?.length > 0) {
       console.log('Conditions met - fetching shipping rates');
       fetchShippingRates();
     } else {
       console.log('Conditions not met for fetching shipping rates:', {
         hasZip: !!shippingAddress?.zip,
+        hasCountry: !!shippingAddress?.country,
         hasCartItems: cart?.length > 0
       });
+      // Clear rates and error if conditions are not met, to avoid showing stale info
+      setShippingRates([]);
+      setError("Please provide a complete shipping address and ensure your cart is not empty to see shipping options.");
     }
   }, [shippingAddress, cart, setShippingRates]);
 
@@ -219,7 +268,7 @@ const CourierSelector = ({
         </div>
       ) : !loading && !error && (
         <div className="border border-ivory-300 p-6 text-center">
-          <p className="text-charcoal-600">Enter a valid Indian PIN code to view shipping options.</p>
+          <p className="text-charcoal-600">Enter a complete shipping address to view shipping options.</p>
         </div>
       )}
     </div>
