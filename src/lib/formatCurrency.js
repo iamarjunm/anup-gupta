@@ -1,3 +1,5 @@
+"use client";
+
 // src/utils/formatCurrency.js
 import { useContext } from 'react';
 import { CurrencyContext } from '@/context/CurrencyContext';
