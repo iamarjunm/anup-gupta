@@ -45,9 +45,11 @@ const CourierSelector = ({
         }
 
         // Fetch weights for all cart items
+        // This is needed for international shipping as well, even if the rate is fixed,
+        // you might still want to ensure there's a valid total weight for future integrations.
         const cartWithWeights = await Promise.all(
           cart.map(async (item) => {
-            const variantId = item.variantId.match(/\d+$/)?.[0];
+            const variantId = item.variantId ? item.variantId.match(/\d+$/)?.[0] : null; // Handle cases where variantId might be null/undefined
             console.log(`Fetching weight for product ${item.id}, variant ${variantId}`);
 
             const weight = await fetchProductWeight(
@@ -60,7 +62,7 @@ const CourierSelector = ({
         );
 
         const totalWeight = cartWithWeights.reduce(
-          (sum, item) => sum + item.weight * item.quantity,
+          (sum, item) => sum + (item.weight || 0) * item.quantity, // Default weight to 0 if null/undefined
           0
         );
 
@@ -97,89 +99,47 @@ const CourierSelector = ({
               },
             }
           );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Shiprocket Domestic API error:', errorData);
+            throw new Error(errorData.message || "Failed to fetch domestic shipping rates.");
+          }
+
+          data = await response.json();
+
+          if (!data?.data?.available_courier_companies) {
+              console.error('Unexpected Shiprocket response structure (domestic):', data);
+              throw new Error("No domestic shipping options available for this location.");
+          }
+           // Transform the response into a more usable format for domestic
+          const rates = data.data.available_courier_companies.map(company => {
+              const priceValue = company.estimated_price || company.rate;
+              return {
+                  id: company.courier_company_id.toString(),
+                  title: company.courier_name,
+                  price: priceValue ? `₹${priceValue}` : 'Price not available',
+                  deliveryTime: company.estimated_delivery_days
+                      ? `${company.estimated_delivery_days} business days`
+                      : company.etd || "3-5 business days",
+              };
+          });
+          console.log('Formatted domestic shipping rates:', rates);
+          setShippingRates(rates);
+
         } else {
-          // International Shipping
-          console.log('Calculating international shipping rates...');
-          // THIS IS WHERE YOU'LL NEED TO INTEGRATE SHIPROCKET X OR ANOTHER INTERNATIONAL API
-          // The API endpoint and parameters will be different.
-          // Example (hypothetical):
-          // response = await fetch(
-          //   `https://apiv2.shiprocket.in/v1/external/courier/international-serviceability`,
-          //   {
-          //     method: "POST", // Might be POST for international
-          //     headers: {
-          //       "Content-Type": "application/json",
-          //       Authorization: `Bearer ${process.env.NEXT_PUBLIC_SHIPROCKET_API_TOKEN_INTERNATIONAL}`, // Might need a different token
-          //     },
-          //     body: JSON.stringify({
-          //       pickup_country_code: "IN",
-          //       delivery_country_code: shippingAddress?.countryCode, // Assuming you have this
-          //       delivery_postcode: deliveryZip,
-          //       delivery_city: deliveryCity,
-          //       delivery_state: deliveryState,
-          //       weight: totalWeight,
-          //       // Add other required international parameters like item details, value, etc.
-          //     }),
-          //   }
-          // );
+          // International Shipping - Fixed Rate Logic
+          console.log('Calculating international shipping rates - applying fixed rate.');
+          // Define the fixed international shipping rate
+          const internationalRate = {
+            id: "international-standard-service", // Unique ID
+            title: "International Standard Service",
+            price: "₹1500.00", // Fixed charge of 1500, formatted with ₹
+            deliveryTime: "10-15 business days", // Example delivery time for international
+          };
 
-          // For now, let's just throw an error or return an empty array if international shipping is not fully implemented.
-          setError("International shipping calculation is not yet fully implemented. Please contact support for international orders.");
-          setLoading(false);
-          return;
-        }
-
-        console.log('Shiprocket API response status:', response.status);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Shiprocket API error:', errorData);
-          throw new Error(errorData.message || "Failed to fetch shipping rates.");
-        }
-
-        data = await response.json();
-
-        // Check if data has the expected structure
-        if (!data?.data?.available_courier_companies && deliveryCountry === PICKUP_COUNTRY_INDIA) {
-            console.error('Unexpected Shiprocket response structure (domestic):', data);
-            throw new Error("No shipping options available for this location.");
-        }
-        // You'll need different checks for international responses based on Shiprocket X API docs.
-
-        // Log each company's data before transformation
-        if (data?.data?.available_courier_companies) {
-            data.data.available_courier_companies.forEach(company => {
-                console.log(`Company: ${company.courier_name}`, {
-                    estimated_price: company.estimated_price,
-                    rate: company.rate,
-                    etd: company.etd,
-                    estimated_delivery_days: company.estimated_delivery_days
-                });
-            });
-
-            // Transform the response into a more usable format
-            const rates = data.data.available_courier_companies.map(company => {
-                const priceValue = company.estimated_price || company.rate;
-                console.log(`Processing ${company.courier_name}:`, {
-                    priceValue,
-                    estimated_price: company.estimated_price,
-                    rate: company.rate
-                });
-
-                return {
-                    id: company.courier_company_id.toString(),
-                    title: company.courier_name,
-                    price: priceValue ? `₹${priceValue}` : 'Price not available',
-                    deliveryTime: company.estimated_delivery_days
-                        ? `${company.estimated_delivery_days} business days`
-                        : company.etd || "3-5 business days",
-                };
-            });
-            console.log('Formatted shipping rates:', rates);
-            setShippingRates(rates);
-        } else {
-            // Handle cases where no couriers are returned for international shipping
-            setError("No international shipping options found for this destination.");
+          setShippingRates([internationalRate]); // Set this single fixed rate
+          console.log('Formatted international fixed shipping rate:', internationalRate);
         }
 
       } catch (err) {
