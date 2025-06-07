@@ -1,8 +1,13 @@
 import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import formatCurrency from "@/lib/formatCurrency";
+// import formatCurrency from "@/lib/formatCurrency"; // <--- REMOVE THIS LINE
+import useFormatCurrency from "@/hooks/useFormatCurrency"; // <--- ADD THIS LINE (adjust path if needed)
 
 const OrderSummary = ({ cart, selectedShippingRate, setTotal }) => {
+  // --- NEW: Call the custom hook here ---
+  const formatCurrency = useFormatCurrency();
+  // -------------------------------------
+
   // Validate props
   if (!Array.isArray(cart)) {
     console.error("Invalid cart prop - expected array, received:", typeof cart);
@@ -45,13 +50,13 @@ const OrderSummary = ({ cart, selectedShippingRate, setTotal }) => {
     }
   }, [total, setTotal]);
 
-  // Format price safely
+  // Format price safely - now directly uses the `formatCurrency` from the hook
   const formatPrice = (price) => {
     try {
       return formatCurrency(price);
     } catch (error) {
       console.error("Error formatting price:", error);
-      return "₹0.00";
+      return "₹0.00"; // Fallback in case of error
     }
   };
 
@@ -84,9 +89,8 @@ const OrderSummary = ({ cart, selectedShippingRate, setTotal }) => {
                   </p>
                 </div>
                 <p className="font-light text-charcoal-900">
-  {formatPrice((item.price || 0) * (item.quantity || 1))}
-</p>
-
+                  {formatPrice((item.price || 0) * (item.quantity || 1))}
+                </p>
               </div>
             ))}
           </div>

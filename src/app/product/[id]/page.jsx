@@ -7,8 +7,9 @@ import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { FiShare2, FiPlus, FiMinus } from 'react-icons/fi';
 import Image from 'next/image';
-import {FindYourFitModal} from '@/components/FindYourFitModal'; 
-import formatCurrency from '@/lib/formatCurrency';
+import { FindYourFitModal } from '@/components/FindYourFitModal';
+// import formatCurrency from '@/lib/formatCurrency'; // <--- REMOVE THIS LINE
+import useFormatCurrency from '@/lib/formatCurrency'; // <--- ADD THIS LINE (or wherever your hook is located)
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -37,6 +38,10 @@ export default function ProductDetails() {
 
   const { addToCart } = useCart();
 
+  // --- NEW: Call the custom hook here ---
+  const formatCurrency = useFormatCurrency();
+  // -------------------------------------
+
   useEffect(() => {
     const getProduct = async () => {
       try {
@@ -53,7 +58,10 @@ export default function ProductDetails() {
         } else if (productData?.variants) {
           const availableSizes = productData.variants.map((variant) => ({
             id: variant.id,
-            size: variant.title.split('/')[0]?.trim() || variant.title || 'Standard',
+            size:
+              variant.title.split('/')[0]?.trim() ||
+              variant.title ||
+              'Standard',
             available: variant.availableForSale,
             stock: variant.inventoryQuantity || 0,
             price: variant.price,
@@ -66,7 +74,9 @@ export default function ProductDetails() {
           ? allProductsResponse.products
           : [];
 
-        setRecommendedProducts(allProducts.filter((p) => p.id !== shopifyId).slice(0, 4));
+        setRecommendedProducts(
+          allProducts.filter((p) => p.id !== shopifyId).slice(0, 4)
+        );
       } catch (error) {
         console.error('Failed to load product:', error);
         setProduct(null);
@@ -145,7 +155,6 @@ export default function ProductDetails() {
         triggerToast('Please provide all custom measurements.');
         return;
       }
-
     } else {
       const selectedVariant = product.variants.find(
         (variant) => variant.title === selectedSize || variant.size === selectedSize
@@ -195,7 +204,9 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <div className="min-h-screen bg-ivory-50 flex items-center justify-center">
-        <p className="text-charcoal-900 font-serif text-lg">This exclusive piece is currently unavailable.</p>
+        <p className="text-charcoal-900 font-serif text-lg">
+          This exclusive piece is currently unavailable.
+        </p>
       </div>
     );
   }
@@ -237,7 +248,9 @@ export default function ProductDetails() {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`block aspect-square overflow-hidden border transition-all duration-200 ${
-                      selectedImage === index ? 'border-charcoal-900' : 'border-gray-200 opacity-70 hover:opacity-100'
+                      selectedImage === index
+                        ? 'border-charcoal-900'
+                        : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                     aria-label={`View image ${index + 1} of ${product.title}`}
                   >
@@ -268,7 +281,8 @@ export default function ProductDetails() {
                 {formatCurrency(parseFloat(product.price))}
               </span>
               {product.compareAtPrice &&
-                parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
+                parseFloat(product.compareAtPrice) >
+                  parseFloat(product.price) && (
                   <span className="text-charcoal-400 line-through ml-3 text-lg">
                     {formatCurrency(parseFloat(product.compareAtPrice))}
                   </span>
@@ -298,7 +312,11 @@ export default function ProductDetails() {
                         : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-70'
                     }`}
                     aria-label={`${sizeInfo.size} ${
-                      !sizeInfo.available ? '(out of stock)' : sizeInfo.stock < 5 ? `(only ${sizeInfo.stock} left)` : ''
+                      !sizeInfo.available
+                        ? '(out of stock)'
+                        : sizeInfo.stock < 5
+                        ? `(only ${sizeInfo.stock} left)`
+                        : ''
                     }`}
                   >
                     {sizeInfo.size}
@@ -309,8 +327,19 @@ export default function ProductDetails() {
                     )}
                     {!sizeInfo.available && sizeInfo.size !== 'Custom Size' && (
                       <span className="absolute inset-0 flex items-center justify-center text-red-500 opacity-80">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          ></path>
                         </svg>
                       </span>
                     )}
@@ -345,7 +374,10 @@ export default function ProductDetails() {
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="chest" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="chest"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Chest
                     </label>
                     <input
@@ -360,7 +392,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="waist" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="waist"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Waist
                     </label>
                     <input
@@ -375,7 +410,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="hips" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="hips"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Hips
                     </label>
                     <input
@@ -390,7 +428,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="sleeveLength" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="sleeveLength"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Sleeve Length
                     </label>
                     <input
@@ -405,7 +446,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="neck" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="neck"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Neck
                     </label>
                     <input
@@ -420,7 +464,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="stomach" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="stomach"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Stomach
                     </label>
                     <input
@@ -435,7 +482,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="shoulder" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="shoulder"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Shoulder
                     </label>
                     <input
@@ -450,7 +500,10 @@ export default function ProductDetails() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="shirtLength" className="block text-xs font-medium text-charcoal-700 mb-1">
+                    <label
+                      htmlFor="shirtLength"
+                      className="block text-xs font-medium text-charcoal-700 mb-1"
+                    >
                       Shirt Length
                     </label>
                     <input
@@ -486,32 +539,55 @@ export default function ProductDetails() {
                 </div>
                 <button
                   onClick={() => setQuantity((q) => q + 1)}
-                  disabled={!isCustomSizeSelected && selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity}
+                  disabled={
+                    !isCustomSizeSelected &&
+                    selectedSize &&
+                    sizes.find((s) => s.size === selectedSize)?.stock <=
+                      quantity
+                  }
                   className="px-4 py-2 bg-ivory-50 hover:bg-gray-100 transition-colors disabled:opacity-50 flex items-center justify-center"
                   aria-label="Increase quantity"
                 >
                   <FiPlus className="w-4 h-4" />
                 </button>
               </div>
-              {!isCustomSizeSelected && selectedSize && sizes.find((s) => s.size === selectedSize)?.stock <= quantity && (
-                <p className="text-xs text-red-500 mt-2">
-                  Only {sizes.find((s) => s.size === selectedSize)?.stock} available.
-                </p>
-              )}
+              {!isCustomSizeSelected &&
+                selectedSize &&
+                sizes.find((s) => s.size === selectedSize)?.stock <=
+                  quantity && (
+                  <p className="text-xs text-red-500 mt-2">
+                    Only {sizes.find((s) => s.size === selectedSize)?.stock}{' '}
+                    available.
+                  </p>
+                )}
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col gap-3 mb-8">
               <button
                 onClick={handleAddToCart}
-                disabled={!selectedSize || (!isCustomSizeSelected && sizes.find((s) => s.size === selectedSize)?.stock < quantity) || (isCustomSizeSelected && Object.values(customMeasurements).some(m => m.trim() === ''))}
+                disabled={
+                  !selectedSize ||
+                  (!isCustomSizeSelected &&
+                    sizes.find((s) => s.size === selectedSize)?.stock <
+                      quantity) ||
+                  (isCustomSizeSelected &&
+                    Object.values(customMeasurements).some((m) => m.trim() === ''))
+                }
                 className="bg-charcoal-900 text-ivory-50 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add to Cart
               </button>
               <button
                 onClick={handleBuyNow}
-                disabled={!selectedSize || (!isCustomSizeSelected && sizes.find((s) => s.size === selectedSize)?.stock < quantity) || (isCustomSizeSelected && Object.values(customMeasurements).some(m => m.trim() === ''))}
+                disabled={
+                  !selectedSize ||
+                  (!isCustomSizeSelected &&
+                    sizes.find((s) => s.size === selectedSize)?.stock <
+                      quantity) ||
+                  (isCustomSizeSelected &&
+                    Object.values(customMeasurements).some((m) => m.trim() === ''))
+                }
                 className="border border-charcoal-900 text-charcoal-900 py-3 uppercase tracking-wider text-sm font-semibold hover:bg-charcoal-900 hover:text-ivory-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Buy Now

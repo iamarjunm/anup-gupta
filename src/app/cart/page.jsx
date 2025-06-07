@@ -3,10 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import formatCurrency from "@/lib/formatCurrency";
+import useFormatCurrency from "@/lib/formatCurrency"; // <--- ADD THIS LINE (adjust path if needed)
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity } = useCart();
+
+  // --- NEW: Call the custom hook here ---
+  const formatCurrency = useFormatCurrency();
+  // -------------------------------------
 
   const totalPrice = cart.reduce(
     (total, item) => total + item.price * item.quantity,

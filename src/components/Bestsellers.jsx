@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { fetchProducts } from '@/lib/fetchProducts' // Your product fetching utility
-import formatCurrency from '@/lib/formatCurrency'; // Assuming you have this utility
+import useFormatCurrency from '@/lib/formatCurrency'; // <-- ADD THIS LINE (adjust path if needed)
 
 export default function BestsellersCollection() {
   const [bestsellerProducts, setBestsellerProducts] = useState([])
@@ -44,6 +44,10 @@ export default function BestsellersCollection() {
   // Inner Product Card Component Logic (adapted from original ProductCard)
   const ProductItem = ({ product }) => {
     const [isHovered, setIsHovered] = useState(false);
+
+    // --- NEW: Call the custom hook here for each ProductItem ---
+    const formatCurrency = useFormatCurrency();
+    // -----------------------------------------------------------
 
     // Safeguard against undefined product
     if (!product) return null;

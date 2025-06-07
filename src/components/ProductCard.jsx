@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import formatCurrency from "@/lib/formatCurrency";
+// import formatCurrency from "@/lib/formatCurrency"; // <--- REMOVE THIS LINE
+import useFormatCurrency from "@/lib/formatCurrency"; // <--- ADD THIS LINE (or wherever your hook is located)
 
 export default function ProductCard({ product }) {
   // Safeguard against undefined product
@@ -16,10 +17,14 @@ export default function ProductCard({ product }) {
   const [wishlisted, setWishlisted] = useState(false);
   const { addToCart } = useCart();
 
+  // --- NEW: Call the custom hook here ---
+  const formatCurrency = useFormatCurrency();
+  // -------------------------------------
+
   // Extract clean product ID
   const productId = useMemo(() => {
-    if (typeof product.id === 'string') {
-      return product.id.split('/').pop();
+    if (typeof product.id === "string") {
+      return product.id.split("/").pop();
     }
     return product.id;
   }, [product.id]);
@@ -27,20 +32,23 @@ export default function ProductCard({ product }) {
   // Process product images with fallbacks
   const images = useMemo(() => {
     if (product.images?.length > 0) {
-      return product.images.map(img => ({
-        url: typeof img === 'string' ? img : img.url || img.src,
-        alt: product.title || "Product image"
+      return product.images.map((img) => ({
+        url: typeof img === "string" ? img : img.url || img.src,
+        alt: product.title || "Product image",
       }));
     }
     if (product.featuredImage) {
-      return [{
-        url: typeof product.featuredImage === 'string' 
-          ? product.featuredImage 
-          : product.featuredImage.url,
-        alt: product.title || "Product image"
-      }];
+      return [
+        {
+          url:
+            typeof product.featuredImage === "string"
+              ? product.featuredImage
+              : product.featuredImage.url,
+          alt: product.title || "Product image",
+        },
+      ];
     }
-    return [{ url: '/placeholder-product.jpg', alt: "Placeholder image" }];
+    return [{ url: "/placeholder-product.jpg", alt: "Placeholder image" }];
   }, [product]);
 
   // Auto-switch to second image on hover if available
@@ -58,9 +66,10 @@ export default function ProductCard({ product }) {
   // Price calculations
   const price = product.priceRange?.minVariantPrice?.amount || product.price || 0;
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice?.amount || product.compareAtPrice || 0;
-  const discountPercentage = compareAtPrice > price 
-    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
-    : 0;
+  const discountPercentage =
+    compareAtPrice > price
+      ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+      : 0;
 
   const handleAddToCart = () => {
     addToCart({
@@ -68,12 +77,12 @@ export default function ProductCard({ product }) {
       title: product.title,
       price: price,
       image: images[0]?.url,
-      quantity: 1
+      quantity: 1,
     });
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="relative group"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -83,8 +92,8 @@ export default function ProductCard({ product }) {
     >
       {/* Luxury Badges */}
       <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-        {product.tags?.includes('new') && (
-          <motion.span 
+        {product.tags?.includes("new") && (
+          <motion.span
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             className="bg-black text-white text-xs font-medium px-3 py-1 rounded-full shadow-lg"
@@ -104,7 +113,10 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* Product Image with Hover Transition */}
-      <Link href={`/product/${productId}`} className="block overflow-hidden rounded-lg bg-gray-50">
+      <Link
+        href={`/product/${productId}`}
+        className="block overflow-hidden rounded-lg bg-gray-50"
+      >
         <div className="relative aspect-[3/4] w-full">
           <AnimatePresence mode="wait">
             {/* Main Image */}
@@ -116,7 +128,7 @@ export default function ProductCard({ product }) {
               className="absolute inset-0"
             >
               <Image
-                src={images[0]?.url || '/placeholder-product.jpg'}
+                src={images[0]?.url || "/placeholder-product.jpg"}
                 alt={images[0]?.alt}
                 fill
                 className="object-cover object-center transition-transform duration-500"
@@ -157,7 +169,7 @@ export default function ProductCard({ product }) {
             </h3>
             <p className="text-sm text-gray-500 mt-1">{product.productType}</p>
           </Link>
-          
+
           <div className="text-right">
             {compareAtPrice > 0 ? (
               <>
@@ -179,13 +191,13 @@ export default function ProductCard({ product }) {
 
       {/* Floating Glow Effect */}
       {isHovered && (
-        <motion.div 
+        <motion.div
           className="absolute inset-0 rounded-lg pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.05 }}
           transition={{ duration: 0.3 }}
           style={{
-            boxShadow: '0 0 100px 20px rgba(0,0,0,0.3)'
+            boxShadow: "0 0 100px 20px rgba(0,0,0,0.3)",
           }}
         />
       )}

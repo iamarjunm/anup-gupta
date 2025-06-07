@@ -36,6 +36,7 @@ export default function ContactPage() {
           </p>
           
           <div className="space-y-8">
+            {/* Canada Atelier Address */}
             <div className="flex items-start gap-4">
               <div className="mt-1">
                 <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,13 +45,45 @@ export default function ContactPage() {
                 </svg>
               </div>
               <div>
-                <h4 className="text-xl font-serif mb-1">OUR ATELIER</h4>
+                <h4 className="text-xl font-serif mb-1">OUR ATELIER (CANADA)</h4>
                 <p className="text-gray-300">36 Cattrick street</p>
-                <p className="text-gray-300">Mississauga </p>
+                <p className="text-gray-300">Mississauga</p>
                 <p className="text-gray-300">L4T1H5</p>
               </div>
             </div>
+
+            {/* India Addresses */}
+            <div>
+              <div className="flex items-start gap-4 mb-4">
+                <div className="mt-1">
+                  <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-xl font-serif mb-1">INDIA</h4>
+                  <p className="text-lg font-semibold text-gray-200 mt-4 mb-2">Manufacturing Address:</p>
+                  <p className="text-gray-300">18 Nehru Housing Society</p>
+                  <p className="text-gray-300">Ambedkar Road</p>
+                  <p className="text-gray-300">Ghaziabad. 201001</p>
+                  <p className="text-gray-300">Uttar Pradesh</p>
+                  <p className="text-gray-300 mt-2">Contact: 0120-4292177</p>
+                  <p className="text-gray-300">0120-4381454</p>
+
+                  <p className="text-lg font-semibold text-gray-200 mt-6 mb-2">Showroom Address:</p>
+                  <p className="text-gray-300">Anup Gupta</p>
+                  <p className="text-gray-300">IInd A-1</p>
+                  <p className="text-gray-300">Nehru Nagar</p>
+                  <p className="text-gray-300">Ghaziabad. 201001</p>
+                  <p className="text-gray-300">Uttar Pradesh</p>
+                  <p className="text-gray-300 mt-2">Contact: 0120-4387417</p>
+                  <p className="text-gray-300">0120-4440789</p>
+                </div>
+              </div>
+            </div>
             
+            {/* Email Us */}
             <div className="flex items-start gap-4">
               <div className="mt-1">
                 <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,6 +96,7 @@ export default function ContactPage() {
               </div>
             </div>
             
+            {/* Call Us */}
             <div className="flex items-start gap-4">
               <div className="mt-1">
                 <svg className="w-5 h-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +105,8 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="text-xl font-serif mb-1">CALL US</h4>
-                <p className="text-gray-300">647-926-9903</p>
+                <p className="text-gray-300">Canada: 647-926-9903</p>
+                <p className="text-gray-300">Canada: 416-213-1425</p>
                 <p className="text-gray-300">Mon-Fri: 9AM - 6PM IST</p>
               </div>
             </div>
