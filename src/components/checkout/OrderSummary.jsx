@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 // import formatCurrency from "@/lib/formatCurrency"; // <--- REMOVE THIS LINE
-import useFormatCurrency from "@/hooks/useFormatCurrency"; // <--- ADD THIS LINE (adjust path if needed)
+import useFormatCurrency from "@/lib/formatCurrency"; // <--- ADD THIS LINE (adjust path if needed)
 
 const OrderSummary = ({ cart, selectedShippingRate, setTotal }) => {
   // --- NEW: Call the custom hook here ---
