@@ -25,8 +25,9 @@ const CourierSelector = ({
 
         const deliveryZip = shippingAddress?.zip;
         const deliveryCountry = shippingAddress?.country; // Assuming you get this from your address object
-        const deliveryCity = shippingAddress?.city; // May be needed for international
-        const deliveryState = shippingAddress?.state; // May be needed for international
+        // deliveryCity and deliveryState are not needed for fixed rates, but kept for context if you expand later.
+        // const deliveryCity = shippingAddress?.city;
+        // const deliveryState = shippingAddress?.state;
 
         // Basic validation for delivery address
         if (!deliveryZip && !deliveryCountry) {
@@ -44,12 +45,10 @@ const CourierSelector = ({
           return;
         }
 
-        // Fetch weights for all cart items
-        // This is needed for international shipping as well, even if the rate is fixed,
-        // you might still want to ensure there's a valid total weight for future integrations.
+        // Fetch weights for all cart items (still good practice even for fixed rates)
         const cartWithWeights = await Promise.all(
           cart.map(async (item) => {
-            const variantId = item.variantId ? item.variantId.match(/\d+$/)?.[0] : null; // Handle cases where variantId might be null/undefined
+            const variantId = item.variantId ? item.variantId.match(/\d+$/)?.[0] : null;
             console.log(`Fetching weight for product ${item.id}, variant ${variantId}`);
 
             const weight = await fetchProductWeight(
@@ -62,7 +61,7 @@ const CourierSelector = ({
         );
 
         const totalWeight = cartWithWeights.reduce(
-          (sum, item) => sum + (item.weight || 0) * item.quantity, // Default weight to 0 if null/undefined
+          (sum, item) => sum + (item.weight || 0) * item.quantity,
           0
         );
 
@@ -73,72 +72,29 @@ const CourierSelector = ({
           return;
         }
 
-        let response;
-        let data;
-
         // --- Logic to handle Domestic vs. International Shipping ---
         if (deliveryCountry === PICKUP_COUNTRY_INDIA) {
-          // Domestic Shipping (India)
-          console.log('Calculating domestic shipping rates...');
-          const params = new URLSearchParams({
-            pickup_postcode: PICKUP_POSTCODE_INDIA,
-            delivery_postcode: deliveryZip,
-            cod: 0,
-            weight: totalWeight,
-          });
-
-          console.log('Shiprocket Domestic API params:', params.toString());
-
-          response = await fetch(
-            `https://apiv2.shiprocket.in/v1/external/courier/serviceability?${params}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_SHIPROCKET_API_TOKEN}`,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Shiprocket Domestic API error:', errorData);
-            throw new Error(errorData.message || "Failed to fetch domestic shipping rates.");
-          }
-
-          data = await response.json();
-
-          if (!data?.data?.available_courier_companies) {
-              console.error('Unexpected Shiprocket response structure (domestic):', data);
-              throw new Error("No domestic shipping options available for this location.");
-          }
-           // Transform the response into a more usable format for domestic
-          const rates = data.data.available_courier_companies.map(company => {
-              const priceValue = company.estimated_price || company.rate;
-              return {
-                  id: company.courier_company_id.toString(),
-                  title: company.courier_name,
-                  price: priceValue ? `₹${priceValue}` : 'Price not available',
-                  deliveryTime: company.estimated_delivery_days
-                      ? `${company.estimated_delivery_days} business days`
-                      : company.etd || "3-5 business days",
-              };
-          });
-          console.log('Formatted domestic shipping rates:', rates);
-          setShippingRates(rates);
+          // Domestic Shipping (India) - Fixed Rate
+          console.log('Calculating domestic shipping rates - applying fixed rate.');
+          const domesticRate = {
+            id: "domestic-standard-service", // Unique ID for domestic
+            title: "Standard Shipping",
+            price: "₹200.00", // Fixed charge of 150
+            deliveryTime: "3-7 business days", // Typical domestic delivery time
+          };
+          setShippingRates([domesticRate]); // Set this single fixed rate for domestic
+          console.log('Formatted domestic fixed shipping rate:', domesticRate);
 
         } else {
-          // International Shipping - Fixed Rate Logic
+          // International Shipping - Fixed Rate
           console.log('Calculating international shipping rates - applying fixed rate.');
-          // Define the fixed international shipping rate
           const internationalRate = {
-            id: "international-standard-service", // Unique ID
+            id: "international-standard-service", // Unique ID for international
             title: "International Standard Service",
-            price: "₹1500.00", // Fixed charge of 1500, formatted with ₹
+            price: "₹1500.00", // Fixed charge of 1500
             deliveryTime: "10-15 business days", // Example delivery time for international
           };
-
-          setShippingRates([internationalRate]); // Set this single fixed rate
+          setShippingRates([internationalRate]); // Set this single fixed rate for international
           console.log('Formatted international fixed shipping rate:', internationalRate);
         }
 
