@@ -15,7 +15,7 @@ const TermsAndConditions = () => {
           Terms and Conditions
         </h1>
         <p className="text-gray-600 text-sm mb-12 text-center">
-          Last updated: June 7, 2025
+          Last updated: June 8, 2025
         </p>
 
         <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
