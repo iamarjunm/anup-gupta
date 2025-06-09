@@ -54,7 +54,6 @@ export default function Navbar() {
   const profileItems = user
     ? [
         { label: "My Account", href: "/account" },
-        { label: "Track Order", href: "/orders" },
         { label: "Logout", action: () => handleLogout() }
       ]
     : [
