@@ -94,7 +94,7 @@ export default function FeaturedCollections() {
       {/* Section Header */}
       <motion.div
         style={{ y: yText }}
-        className="relative z-10 pt-40 pb-24 text-center"
+        className="relative z-10 pt-8 pb-24 text-center"
       >
         <p className="text-gold-500 text-sm uppercase tracking-[0.3em] mb-4">
           Signature Collections
